@@ -2,6 +2,11 @@
 Volley head adalah game multiplayer competitive dimana terdapat 2 tim yang memiliki masing-masing 2 pemain. Tim tersebut akan berhadapan satu sama lain dengan permainan bola voli. Tim yang mendapat target poin terlebih dahulu akan memenangkan pertandingan. 
 
 
+# Anggota
+Irfan Muhammad    			      4210191002
+Auriel Harlih Rizkinanda			4210191014
+Natan Andro Tri Arauna			  4210191023
+Andhika Arista Permana			  4210191024
 
 
 Berikut link Untuk Game Design Document dari game Volley Head:
