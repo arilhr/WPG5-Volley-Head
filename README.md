@@ -13,6 +13,6 @@ Andhika Arista Permana			  4210191024
 
 
 
-#GDD
+# GDD
 Berikut link Untuk Game Design Document dari game Volley Head:
 [Link GDD](https://docs.google.com/document/d/1TiZCA6xraU1A5UaMsJp_gWG30ja4JbGDjdRZyFaHguE/edit?usp=sharing)
