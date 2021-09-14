@@ -2,11 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+public class Player : MonoBehaviour
 {
+    public int teamID;
     public float speed;
     public float jumpForce;
+    public Transform serviceArea;
+    public GameObject serviceBallPos;
     [SerializeField] private LayerMask layerMask;
+
+    public KeyCode rightButton;
+    public KeyCode leftButton;
+    public KeyCode jumpButton;
 
     private Rigidbody2D playerRb;
     private float horizontalAxis;
@@ -28,9 +35,20 @@ public class PlayerMovement : MonoBehaviour
 
     private void InputPlayer()
     {
-        horizontalAxis = Input.GetAxisRaw("Horizontal");
+        if (Input.GetKey(rightButton))
+        {
+            horizontalAxis = 1;
+        }
+        else if (Input.GetKey(leftButton))
+        {
+            horizontalAxis = -1;
+        }
+        else
+        {
+            horizontalAxis = 0;
+        }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(jumpButton))
         {
             Jump();
         }
@@ -43,7 +61,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
-        if (GroundCheck() && Input.GetKeyDown(KeyCode.Space))
+        if (GroundCheck())
         {
             playerRb.AddForce(new Vector2(0, jumpForce * 10));
         }
@@ -52,9 +70,14 @@ public class PlayerMovement : MonoBehaviour
     private bool GroundCheck()
     {
         float offsetHeight = 1f;
-        BoxCollider2D collider = GetComponent<BoxCollider2D>();
+        Collider2D collider = GetComponent<Collider2D>();
         RaycastHit2D raycastHit = Physics2D.BoxCast(collider.bounds.center, collider.bounds.size, 0f, Vector2.down, offsetHeight, layerMask);
 
         return raycastHit.collider != null;
+    }
+
+    public int GetTeam()
+    {
+        return teamID;
     }
 }
