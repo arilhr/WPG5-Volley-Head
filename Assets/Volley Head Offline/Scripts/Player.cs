@@ -2,82 +2,86 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+namespace VollyHead.Offline
 {
-    public int teamID;
-    public float speed;
-    public float jumpForce;
-    public Transform serviceArea;
-    public GameObject serviceBallPos;
-    [SerializeField] private LayerMask layerMask;
-
-    public KeyCode rightButton;
-    public KeyCode leftButton;
-    public KeyCode jumpButton;
-
-    private Rigidbody2D playerRb;
-    private float horizontalAxis;
-
-    private void Start()
+    public class Player : MonoBehaviour
     {
-        playerRb = GetComponent<Rigidbody2D>();
-    }
+        public int teamID;
+        public float speed;
+        public float jumpForce;
+        public Transform serviceArea;
+        public GameObject serviceBallPos;
+        [SerializeField] private LayerMask layerMask;
 
-    private void Update()
-    {
-        InputPlayer();
-    }
+        public KeyCode rightButton;
+        public KeyCode leftButton;
+        public KeyCode jumpButton;
 
-    private void FixedUpdate()
-    {
-        Move();
-    }
+        private Rigidbody2D playerRb;
+        private float horizontalAxis;
 
-    private void InputPlayer()
-    {
-        if (Input.GetKey(rightButton))
+        private void Start()
         {
-            horizontalAxis = 1;
-        }
-        else if (Input.GetKey(leftButton))
-        {
-            horizontalAxis = -1;
-        }
-        else
-        {
-            horizontalAxis = 0;
+            playerRb = GetComponent<Rigidbody2D>();
         }
 
-        if (Input.GetKeyDown(jumpButton))
+        private void Update()
         {
-            Jump();
+            InputPlayer();
+        }
+
+        private void FixedUpdate()
+        {
+            Move();
+        }
+
+        private void InputPlayer()
+        {
+            if (Input.GetKey(rightButton))
+            {
+                horizontalAxis = 1;
+            }
+            else if (Input.GetKey(leftButton))
+            {
+                horizontalAxis = -1;
+            }
+            else
+            {
+                horizontalAxis = 0;
+            }
+
+            if (Input.GetKeyDown(jumpButton))
+            {
+                Jump();
+            }
+        }
+
+        private void Move()
+        {
+            playerRb.velocity = new Vector2(speed * horizontalAxis * Time.fixedDeltaTime * 10, playerRb.velocity.y);
+        }
+
+        private void Jump()
+        {
+            if (GroundCheck())
+            {
+                playerRb.AddForce(new Vector2(0, jumpForce * 10));
+            }
+        }
+
+        private bool GroundCheck()
+        {
+            float offsetHeight = 1f;
+            Collider2D collider = GetComponent<Collider2D>();
+            RaycastHit2D raycastHit = Physics2D.BoxCast(collider.bounds.center, collider.bounds.size, 0f, Vector2.down, offsetHeight, layerMask);
+
+            return raycastHit.collider != null;
+        }
+
+        public int GetTeam()
+        {
+            return teamID;
         }
     }
 
-    private void Move()
-    {
-        playerRb.velocity = new Vector2(speed * horizontalAxis * Time.fixedDeltaTime * 10, playerRb.velocity.y);
-    }
-
-    private void Jump()
-    {
-        if (GroundCheck())
-        {
-            playerRb.AddForce(new Vector2(0, jumpForce * 10));
-        }
-    }
-
-    private bool GroundCheck()
-    {
-        float offsetHeight = 1f;
-        Collider2D collider = GetComponent<Collider2D>();
-        RaycastHit2D raycastHit = Physics2D.BoxCast(collider.bounds.center, collider.bounds.size, 0f, Vector2.down, offsetHeight, layerMask);
-
-        return raycastHit.collider != null;
-    }
-
-    public int GetTeam()
-    {
-        return teamID;
-    }
 }

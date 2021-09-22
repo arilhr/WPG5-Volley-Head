@@ -3,21 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UIManager : MonoBehaviour
+namespace VollyHead.Offline
 {
-    public static UIManager instance;
-
-    public Text[] teamScoreText;
-
-    private void Awake()
+    public class UIManager : MonoBehaviour
     {
-        if (instance == null)
+        public static UIManager instance;
+
+        public Text[] teamScoreText;
+
+        private void Awake()
         {
-            instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
+            if (instance == null)
+            {
+                instance = this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
     }
+
 }
