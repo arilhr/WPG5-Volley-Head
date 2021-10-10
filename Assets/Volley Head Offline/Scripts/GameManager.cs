@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,12 +11,18 @@ namespace VollyHead.Offline
 
         public float timeToNewRound = 2f;
 
-        public Player[] playerTeam1;
-        public Player[] playerTeam2;
+        [Serializable]
+        public struct Team
+        {
+            [HideInInspector] public int score;
+            public List<Player> teamPlayer;
+            public List<Transform> startingPos;
+        }
+
+        public Team[] teams = new Team[2];
         public GameObject ball;
 
         private Player currentPlayerService;
-        private int[] scoreTeam = new int[2];
 
         private void Awake()
         {
@@ -31,23 +38,54 @@ namespace VollyHead.Offline
 
         private void Start()
         {
-            StartGame();
+            InitializeStartingData();
         }
 
-        public void StartGame()
+        public void InitializeStartingData()
         {
             // reset score
-            scoreTeam[0] = 0;
-            scoreTeam[1] = 0;
+            teams[0].score = 0;
+            teams[1].score = 0;
 
-            RandomFirstService();
+            RandomFirstTeamToServe();
             SetStartingPosition();
+        }
+
+        /* 
+         This is to set the position of servicing player
+         */
+        private void SetStartingPosition()
+        {
+            // set player starting pos
+            currentPlayerService.transform.position = currentPlayerService.serviceArea.position;
+            ball.transform.position = currentPlayerService.serviceBallPos.transform.position;
+
+            // set another player starting pos
+            foreach (Team team in teams)
+            {
+                int pos = 0;
+                foreach (Player player in team.teamPlayer)
+                {
+                    if (player != currentPlayerService)
+                    {
+                        player.transform.position = team.startingPos[pos].position;
+                        pos++;
+                    }
+                }
+            }
+
+            // set serve mode
+            currentPlayerService.ServeMode();
+            ball.GetComponent<Ball>().ServeMode();
+
+            // set serve ui
+            UIManager.instance.SetServeUI();
         }
 
         /*
          * This is to random the team and player to service first time.
          */
-        private void RandomFirstService()
+        private void RandomFirstTeamToServe()
         {
             // random
             int teamService = UnityEngine.Random.Range(0, 2);
@@ -59,39 +97,29 @@ namespace VollyHead.Offline
          */
         private void RandomPlayerToServe(int _team)
         {
-            if (_team == 0)
-            {
-                int rand = UnityEngine.Random.Range(0, playerTeam1.Length);
-                currentPlayerService = playerTeam1[rand];
-            }
-            else if (_team == 1)
-            {
-                int rand = UnityEngine.Random.Range(0, playerTeam2.Length);
-                currentPlayerService = playerTeam2[rand];
-            }
+            int rand = UnityEngine.Random.Range(0, 2);
+            currentPlayerService = teams[_team].teamPlayer[rand];
         }
+        
 
-        /* 
-         This is to sset the position of servicing player
-         */
-        private void SetStartingPosition()
+        public IEnumerator StartNewRound(int serviceTeam)
         {
-            currentPlayerService.transform.position = currentPlayerService.serviceArea.position;
-            ball.transform.position = currentPlayerService.serviceBallPos.transform.position;
-        }
+            yield return new WaitForSeconds(timeToNewRound);
 
-        public void StartNewRound(int serviceTeam)
-        {
             RandomPlayerToServe(serviceTeam);
             SetStartingPosition();
         }
 
-        public void AddScore(int _team)
+        public void Scored(int scoredTeam)
         {
-            scoreTeam[_team] += 1;
+            // add score
+            teams[scoredTeam].score += 1;
 
             // Score UI updated
-            UIManager.instance.teamScoreText[_team].text = scoreTeam[_team].ToString();
+            UIManager.instance.teamScoreText[scoredTeam].text = teams[scoredTeam].score.ToString();
+
+            // start a new round
+            StartCoroutine(StartNewRound(scoredTeam));
         }
     }
 

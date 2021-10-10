@@ -10,6 +10,8 @@ namespace VollyHead.Offline
         public static UIManager instance;
 
         public Text[] teamScoreText;
+        public GameObject serveUI;
+        public GameObject movementUI;
 
         private void Awake()
         {
@@ -21,6 +23,18 @@ namespace VollyHead.Offline
             {
                 Destroy(gameObject);
             }
+        }
+
+        public void SetServeUI()
+        {
+            serveUI.SetActive(true);
+            movementUI.SetActive(false);
+        }
+
+        public void SetMoveUI()
+        {
+            serveUI.SetActive(false);
+            movementUI.SetActive(true);
         }
     }
 

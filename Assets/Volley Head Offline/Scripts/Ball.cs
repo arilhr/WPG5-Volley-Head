@@ -8,10 +8,12 @@ namespace VollyHead.Offline
     {
         public BoxCollider2D midBoundary;
         public float maxSpeed;
-        public string onAreaTeam;
+        private string onAreaTeam;
 
         private bool isPlayed = true;
         private Rigidbody2D ballRb;
+
+        private float defaultGravityScale;
 
         private int lastTeamTouchBall;
         private int latestTeamTouchCount;
@@ -23,6 +25,7 @@ namespace VollyHead.Offline
         {
             CircleCollider2D collider = GetComponent<CircleCollider2D>();
             ballRb = GetComponent<Rigidbody2D>();
+            defaultGravityScale = ballRb.gravityScale;
 
             Physics2D.IgnoreCollision(collider, midBoundary);
         }
@@ -32,6 +35,7 @@ namespace VollyHead.Offline
             CheckMaxSpeed();
         }
 
+        // limit the velocity of ball
         private void CheckMaxSpeed()
         {
             if (ballRb.velocity.magnitude > maxSpeed)
@@ -40,19 +44,31 @@ namespace VollyHead.Offline
             }
         }
 
-        private IEnumerator WaitToNewRound(int scoredTeam)
+        public void ServeMode()
         {
-            isPlayed = false;
+            isPlayed = true;
+            ballRb.velocity = Vector2.zero;
+            ballRb.gravityScale = 0;
+        }
+
+        public void ShootServe(float power)
+        {
+            ballRb.gravityScale = 0.8f;
+            ballRb.AddForce(new Vector2(20f * power, 5f * power));
+        }
+
+        public void ResetBallData()
+        {
             lastTeamTouchBall = -1;
             latestTeamTouchCount = 0;
             latestPlayerTouchBall = null;
-            GameManager.instance.AddScore(scoredTeam);
+        }
 
-            yield return new WaitForSeconds(GameManager.instance.timeToNewRound);
-
-            GameManager.instance.StartNewRound(scoredTeam);
-            ballRb.velocity = Vector3.zero;
-            isPlayed = true;
+        private void Scored(int scoredTeam)
+        {
+            isPlayed = false;
+            ResetBallData();
+            GameManager.instance.Scored(scoredTeam);
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
@@ -70,16 +86,10 @@ namespace VollyHead.Offline
                         if (latestTeamTouchCount > 3)
                         {
                             // add score to enemy
-                            int scoredTeam;
-                            if (collideTeamID == 0) scoredTeam = 1;
-                            else scoredTeam = 0;
+                            int scoredTeam = collideTeamID == 0? 1 : 0;
 
-                            StartCoroutine(WaitToNewRound(scoredTeam));
+                            Scored(scoredTeam);
                             return;
-                        }
-                        else
-                        {
-                            
                         }
                     }
                     else
@@ -90,12 +100,10 @@ namespace VollyHead.Offline
 
                     if (latestPlayerTouchBall == playerCollided)
                     {
-                        int scoredTeam;
-                        if (collideTeamID == 0) scoredTeam = 1;
-                        else scoredTeam = 0;
+                        int scoredTeam = collideTeamID == 0? 1 : 0;
 
                         // add score to enemy
-                        StartCoroutine(WaitToNewRound(scoredTeam));
+                        Scored(scoredTeam);
                         return;
                     }
                     else
@@ -112,12 +120,12 @@ namespace VollyHead.Offline
                     if (onAreaTeam == "Area1")
                     {
                         Debug.Log($"Team 2 has scored..");
-                        StartCoroutine(WaitToNewRound(1));
+                        Scored(1);
                     }
                     else if (onAreaTeam == "Area2")
                     {
                         Debug.Log($"Team 1 has scored..");
-                        StartCoroutine(WaitToNewRound(0));
+                        Scored(0);
                     }
                 }
             }
@@ -127,9 +135,7 @@ namespace VollyHead.Offline
         {
             if (collision.gameObject.tag != onAreaTeam)
             {
-                lastTeamTouchBall = -1;
-                latestTeamTouchCount = 0;
-                latestPlayerTouchBall = null;
+                ResetBallData();
             }
         }
 
