@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 
 namespace VollyHead.Offline
 {
@@ -30,7 +29,6 @@ namespace VollyHead.Offline
         private float servePower;
         private float inputServe;
 
-        private PlayerInputAction playerInputAction;
         private PlayerState playerState = PlayerState.Move;
         private Rigidbody2D playerRb;
         private Vector2 inputHorizontal;
@@ -58,21 +56,18 @@ namespace VollyHead.Offline
 
         private void InitializeInputPlayer()
         {
-            playerInputAction = new PlayerInputAction();
-            playerInputAction.Player.Enable();
-            playerInputAction.Player.Jump.performed += Jump;
-            playerInputAction.Player.Shoot.performed += Serve;
+            
         }
 
         private void InputPlayer()
         {
             if (playerState == PlayerState.Move)
             {
-                inputHorizontal = playerInputAction.Player.Move.ReadValue<Vector2>();
+                
             }
             else if (playerState == PlayerState.Serve)
             {
-                inputServe = playerInputAction.Player.Serve.ReadValue<float>();
+                
             }
         }
 
@@ -81,7 +76,7 @@ namespace VollyHead.Offline
             playerRb.velocity = new Vector2(speed * inputHorizontal.x * Time.fixedDeltaTime * 10, playerRb.velocity.y);
         }
 
-        private void Jump(InputAction.CallbackContext ctx)
+        private void Jump()
         {
             if (GroundCheck() && playerState == PlayerState.Move)
             {
@@ -110,7 +105,7 @@ namespace VollyHead.Offline
             serveSlider.value = servePower;
         }
 
-        private void Serve(InputAction.CallbackContext ctx)
+        private void Serve()
         {
             ball.ShootServe(servePower * servePowerMultiplier);
             playerState = PlayerState.Move;
