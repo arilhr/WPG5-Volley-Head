@@ -112,6 +112,7 @@ GameObject:
   - component: {fileID: 3604311364537775854}
   - component: {fileID: -7803172478363957339}
   - component: {fileID: -8190666473291536037}
+  - component: {fileID: -5458622834404747329}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -169,12 +170,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0
-  speed: 10
+  speed: 30
   jumpForce: 40
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  servePowerMultiplier: 70
+  servePowerMultiplier: 50
 --- !u!114 &-7803172478363957339
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -221,3 +222,17 @@ MonoBehaviour:
   showGizmos: 0
   showOverlay: 0
   overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
+--- !u!114 &-5458622834404747329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3604311364537775856}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d17e718851449a6879986e45c458fb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1

@@ -23,6 +23,11 @@ namespace VollyHead.Online
         public CustomButton leftButton;
         public CustomButton rightButton;
 
+        [Header("Game End UI")]
+        public GameObject gameEndPanel;
+        public TMP_Text informationText;
+        public GameObject startAgainBtn;
+       
 
         private void Awake()
         {
@@ -61,6 +66,21 @@ namespace VollyHead.Online
             teamScoreText[1].text = team2.ToString();
         }
 
-        
+        [Client]
+        public void SetGameEndUI(bool isWin)
+        {
+            gameEndPanel.SetActive(true);
+
+            if (isServer) startAgainBtn.SetActive(true);
+
+            if (isWin)
+            {
+                informationText.text = $"YOU WIN!!";
+            }
+            else
+            {
+                informationText.text = $"YOU LOSE!!";
+            }
+        }
     }
 }

@@ -127,7 +127,6 @@ namespace VollyHead.Online
         private void CmdIncreaseServePower(float power)
         {
             servePower = power;
-            Debug.Log("[server]Serve power increase: " + servePower);
         }
 
         [Client]
@@ -140,7 +139,7 @@ namespace VollyHead.Online
         private void CmdServe()
         {
             float finalPower = team == 0 ? servePower : -servePower;
-            GameManager.instance.ball.GetComponent<Ball>().CmdServeBall(finalPower * servePowerMultiplier);
+            GameManager.instance.ball.GetComponent<Ball>().ServeBall(finalPower * servePowerMultiplier);
             EndServeRpc();
         }
 

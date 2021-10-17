@@ -27,18 +27,30 @@ namespace VollyHead.Online
             defaultGravityScale = ballRb.gravityScale;
 
             Physics2D.IgnoreCollision(collider, GameManager.instance.midBoundary);
+
+            // disable physics on client
+            if (!isServer)
+            {
+                ballRb.isKinematic = true;
+            }
         }
 
         private void FixedUpdate()
         {
-            CheckMaxSpeed();
+            if (isServer)
+            {
+                CheckMaxSpeed();
+            }
         }
 
+        [Server]
         public void StartNewRound()
         {
             isPlayed = true;
+            ResetBallData();
         }
 
+        [Server]
         public void ServeMode()
         {
             isPlayed = true;
@@ -46,12 +58,14 @@ namespace VollyHead.Online
             ballRb.velocity = Vector2.zero;
         }
 
-        public void CmdServeBall(float power)
+        [Server]
+        public void ServeBall(float power)
         {
             ballRb.gravityScale = 0.8f;
             ballRb.AddForce(new Vector2(10f * power,  6f * Mathf.Abs(power)));
         }
 
+        [Server]
         private void Scored(int scoredTeam)
         {
             isPlayed = false;
@@ -59,6 +73,7 @@ namespace VollyHead.Online
             GameManager.instance.Scored(scoredTeam);
         }
 
+        [Server]
         public void ResetBallData()
         {
             lastTeamTouchBall = -1;
@@ -67,6 +82,7 @@ namespace VollyHead.Online
         }
 
         // limit the velocity of ball
+        [Server]
         private void CheckMaxSpeed()
         {
             if (ballRb.velocity.magnitude > maxSpeed)
@@ -75,9 +91,10 @@ namespace VollyHead.Online
             }
         }
 
-        [ServerCallback]
         private void OnCollisionEnter2D(Collision2D collision)
         {
+            if (!isServer) return;
+
             if (collision.gameObject.GetComponent<Player>() != null)
             {
                 if (isPlayed)
@@ -136,18 +153,22 @@ namespace VollyHead.Online
             }
         }
 
-        [ServerCallback]
+
         private void OnTriggerEnter2D(Collider2D collision)
         {
+            if (!isServer) return;
+
             if (collision.gameObject.tag != onAreaTeam)
             {
                 ResetBallData();
             }
         }
 
-        [ServerCallback]
+
         private void OnTriggerStay2D(Collider2D collision)
         {
+            if (!isServer) return;
+
             if (collision.gameObject.tag == "Area1")
             {
                 onAreaTeam = collision.gameObject.tag;

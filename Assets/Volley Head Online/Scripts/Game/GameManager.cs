@@ -43,6 +43,7 @@ namespace VollyHead.Online
             }
         }
 
+        [Server]
         public void SetGameData(List<Player> playerTeam1, List<Player> playerTeam2, GameObject ballObject)
         {
             foreach (Player player in playerTeam1)
@@ -60,12 +61,14 @@ namespace VollyHead.Online
             ball = ballObject;
         }
 
+        [Server]
         public void StartGame()
         {
             RandomFirstTeamToServe();
             SetStartingPosition();
         }
 
+        [Server]
         private void RandomFirstTeamToServe()
         {
             // random
@@ -73,12 +76,14 @@ namespace VollyHead.Online
             RandomPlayerToServe(teamService);
         }
 
+        [Server]
         private void RandomPlayerToServe(int _team)
         {
             int rand = UnityEngine.Random.Range(0, teams[_team].teamPlayer.Count);
             currentPlayerToServe = teams[_team].teamPlayer[rand];
         }
 
+        [Server]
         private void SetStartingPosition()
         {
             // set player starting pos
@@ -104,6 +109,7 @@ namespace VollyHead.Online
             ball.GetComponent<Ball>().ServeMode();
         }
 
+        [Server]
         public IEnumerator StartNewRound(int serviceTeam)
         {
             yield return new WaitForSeconds(timeToNewRound);
@@ -113,6 +119,7 @@ namespace VollyHead.Online
             ball.GetComponent<Ball>().StartNewRound();
         }
 
+        [Server]
         public void Scored(int scoredTeam)
         {
             // add score
@@ -121,8 +128,52 @@ namespace VollyHead.Online
             // Score UI updated
             UIManager.instance.SetScore(teams[0].score, teams[1].score);
 
+            if (CheckWin(scoredTeam)) return;
+
             // start a new round
             StartCoroutine(StartNewRound(scoredTeam));
+        }
+
+        [Server]
+        private bool CheckWin(int scoredTeam)
+        {
+            if (teams[scoredTeam].score == 5)
+            {
+                GameEnd(scoredTeam);
+                return true;
+            }
+
+            return false;
+        }
+
+        [Server]
+        private void GameEnd(int winnerTeam)
+        {
+            int loserTeam = winnerTeam == 0 ? 1 : 0;
+
+            foreach (Player player in teams[winnerTeam].teamPlayer)
+            {
+                RpcGameWin(player.connectionToClient);
+            }
+
+            foreach (Player player in teams[loserTeam].teamPlayer)
+            {
+                RpcGameLose(player.connectionToClient);
+            }
+        }
+
+        [TargetRpc]
+        private void RpcGameLose(NetworkConnection target)
+        {
+            UIManager.instance.SetGameEndUI(false);
+            Debug.Log($"Lose...");
+        }
+
+        [TargetRpc]
+        private void RpcGameWin(NetworkConnection target)
+        {
+            UIManager.instance.SetGameEndUI(true);
+            Debug.Log($"Win...");
         }
     }
 }
