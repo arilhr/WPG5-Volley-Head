@@ -33,6 +33,7 @@ namespace VollyHead.Online
     public class MatchMaker : MonoBehaviour
     {
         public static MatchMaker instance;
+
         public event Action<NetworkConnection> OnPlayerDisconnected;
 
         public readonly Dictionary<NetworkConnection, Guid> playerMatches = new Dictionary<NetworkConnection, Guid>();
@@ -48,8 +49,9 @@ namespace VollyHead.Online
 
         // list scene game match start
         public readonly Dictionary<Guid, Scene> matchStartScenes = new Dictionary<Guid, Scene>();
-        
+
         // max player on match
+        public int minPlayerToStart = 2;
         public int maxPlayerOnMatch = 4;
 
         // current joined match id
@@ -60,6 +62,10 @@ namespace VollyHead.Online
 
         [Scene]
         public string gameScene = string.Empty;
+
+        [Header("GAME MANAGER")]
+        public GameObject gameManager;
+        public GameObject ballObject;
 
         private void Awake()
         {
@@ -110,10 +116,8 @@ namespace VollyHead.Online
         {
             if (!NetworkClient.active || currentClientMatchId == string.Empty) return;
 
-            Debug.Log($"Cancel match...");
             NetworkClient.connection.Send(new ServerMatchMessage { serverMatchOperation = ServerMatchOperation.Cancel });
         }
-
 
         public void RequestChangeTeam()
         {
@@ -121,6 +125,7 @@ namespace VollyHead.Online
 
             NetworkClient.connection.Send(new ServerMatchMessage { serverMatchOperation = ServerMatchOperation.ChangeTeam, matchId = currentClientMatchId });
         }
+
         public void RequestStartMatch()
         {
             if (!NetworkClient.active || currentClientMatchId == string.Empty) return;
@@ -436,9 +441,8 @@ namespace VollyHead.Online
 
         void OnServerCancelMatch(NetworkConnection conn)
         {
-            if (!NetworkServer.active || currentClientMatchId == string.Empty || !playerInfos[conn].isRoomMaster) return;
+            if (!NetworkServer.active || playerInfos[conn].matchId == string.Empty || !playerInfos[conn].isRoomMaster) return;
 
-            Debug.Log($"Cancel match...");
             Guid matchGuid;
 
             conn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.Cancelled });
@@ -458,6 +462,7 @@ namespace VollyHead.Online
                 }
             }
 
+            Debug.Log($"Cancel match...");
         }
 
         void OnServerStartMatch(NetworkConnection conn)
@@ -479,14 +484,23 @@ namespace VollyHead.Online
             Scene newMatchScene = SceneManager.GetSceneAt(matchStartScenes.Count + 1);
             matchStartScenes.Add(matchGuid, newMatchScene);
 
+            List<Player> team1 = new List<Player>();
+            List<Player> team2 = new List<Player>();
+            GameObject gameManagerObj = Instantiate(gameManager);
+            NetworkServer.Spawn(gameManagerObj);
+            GameManager gm = gameManagerObj.GetComponent<GameManager>();
+
             foreach (NetworkConnection playerConn in matchConnections[matchGuid])
             {
                 playerConn.Send(new SceneMessage { sceneName = gameScene, sceneOperation = SceneOperation.LoadAdditive });
                 playerConn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.Started });
                 GameObject player = Instantiate(NetworkManager.singleton.playerPrefab);
-#pragma warning disable 618
+                Player playerManager = player.GetComponent<Player>();
+                if (playerInfos[playerConn].team == 1)
+                    team1.Add(playerManager);
+                else if (playerInfos[playerConn].team == 2)
+                    team2.Add(playerManager);
                 player.GetComponent<NetworkMatch>().matchId = matchGuid;
-#pragma warning restore 618
                 NetworkServer.AddPlayerForConnection(playerConn, player);
 
                 /* Reset ready state for after the match. */
@@ -496,6 +510,17 @@ namespace VollyHead.Online
 
                 SceneManager.MoveGameObjectToScene(playerConn.identity.gameObject, newMatchScene);
             }
+
+            GameObject ball = Instantiate(ballObject);
+            Ball ballManager = ball.GetComponent<Ball>();
+            NetworkServer.Spawn(ball);
+            SceneManager.MoveGameObjectToScene(ball, newMatchScene);
+            ballManager.InitializeBallData(gm);
+
+            gm.InitializeGameData(team1, team2, ballManager);
+            SceneManager.MoveGameObjectToScene(gameManagerObj, newMatchScene);
+
+            gm.StartGame();
 
             playerMatches.Remove(conn);
             openMatches.Remove(matchGuid);
@@ -522,6 +547,7 @@ namespace VollyHead.Online
                     }
                 case ClientMatchOperation.Cancelled:
                     {
+                        Debug.Log($"Cancelled Match on Client...");
                         OnClientCancelled();
                         break;
                     }
@@ -562,7 +588,7 @@ namespace VollyHead.Online
             LobbyUIManager.instance.ShowMatchRoom(_matchId, playerClientInfo.isRoomMaster);
 
             // update room
-            LobbyUIManager.instance.UpdateRoom(team1, team2);
+            LobbyUIManager.instance.UpdateRoom(team1.Count + team2.Count, team1, team2);
         }
 
         void OnClientJoined(PlayerInfo player, List<PlayerInfo> team1, List<PlayerInfo> team2, string _matchId)
@@ -574,7 +600,7 @@ namespace VollyHead.Online
             LobbyUIManager.instance.ShowMatchRoom(_matchId, playerClientInfo.isRoomMaster);
 
             // update room
-            LobbyUIManager.instance.UpdateRoom(team1, team2);
+            LobbyUIManager.instance.UpdateRoom(team1.Count + team2.Count, team1, team2);
         }
 
         void OnClientDeparted()
@@ -588,6 +614,7 @@ namespace VollyHead.Online
         void OnClientCancelled()
         {
             currentClientMatchId = string.Empty;
+            
 
             // back to lobby
             LobbyUIManager.instance.ResetLobby();
@@ -601,7 +628,7 @@ namespace VollyHead.Online
         void OnClientUpdatedRoom(List<PlayerInfo> team1, List<PlayerInfo> team2)
         {
             // update room player ui
-            LobbyUIManager.instance.UpdateRoom(team1, team2);
+            LobbyUIManager.instance.UpdateRoom(team1.Count + team2.Count, team1, team2);
         }
 
         void OnClientMatchStarted()

@@ -7,10 +7,8 @@ using UnityEngine.UI;
 
 namespace VollyHead.Online
 {
-    public class UIManager : NetworkBehaviour
+    public class UIManager : MonoBehaviour
     {
-        public static UIManager instance;
-
         public TMP_Text[] teamScoreText;
 
         [Header("Serve UI")]
@@ -27,19 +25,7 @@ namespace VollyHead.Online
         public GameObject gameEndPanel;
         public TMP_Text informationText;
         public GameObject startAgainBtn;
-       
 
-        private void Awake()
-        {
-            if (instance == null)
-            {
-                instance = this;
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
-        }
 
         public void SetServeUI()
         {
@@ -48,10 +34,12 @@ namespace VollyHead.Online
             movementUI.SetActive(false);
         }
 
+
         public void SetServePowerUI(float power)
         {
             serveBar.value = power;
         }
+
 
         public void SetMoveUI()
         {
@@ -59,19 +47,16 @@ namespace VollyHead.Online
             movementUI.SetActive(true);
         }
 
-        [ClientRpc]
+
         public void SetScore(int team1, int team2)
         {
             teamScoreText[0].text = team1.ToString();
             teamScoreText[1].text = team2.ToString();
         }
 
-        [Client]
         public void SetGameEndUI(bool isWin)
         {
             gameEndPanel.SetActive(true);
-
-            if (isServer) startAgainBtn.SetActive(true);
 
             if (isWin)
             {

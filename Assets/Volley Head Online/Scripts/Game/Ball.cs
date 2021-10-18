@@ -7,6 +7,8 @@ namespace VollyHead.Online
 {
     public class Ball : NetworkBehaviour
     {
+        public GameManager gameManager;
+
         public float maxSpeed;
         private string onAreaTeam;
 
@@ -22,11 +24,8 @@ namespace VollyHead.Online
 
         void Start()
         {
-            CircleCollider2D collider = GetComponent<CircleCollider2D>();
             ballRb = GetComponent<Rigidbody2D>();
             defaultGravityScale = ballRb.gravityScale;
-
-            Physics2D.IgnoreCollision(collider, GameManager.instance.midBoundary);
 
             // disable physics on client
             if (!isServer)
@@ -41,6 +40,16 @@ namespace VollyHead.Online
             {
                 CheckMaxSpeed();
             }
+        }
+
+        [Server]
+        public void InitializeBallData(GameManager _gameManager)
+        {
+            isPlayed = false;
+            CircleCollider2D collider = GetComponent<CircleCollider2D>();
+            gameManager = _gameManager;
+
+            Physics2D.IgnoreLayerCollision(gameObject.layer, 9);
         }
 
         [Server]
@@ -70,7 +79,7 @@ namespace VollyHead.Online
         {
             isPlayed = false;
             ResetBallData();
-            GameManager.instance.Scored(scoredTeam);
+            gameManager.Scored(scoredTeam);
         }
 
         [Server]

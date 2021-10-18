@@ -67,8 +67,8 @@ namespace VollyHead.Online
                 playerTeam2.Add(player.GetComponent<Player>());
             }
 
-            GameManager.instance.SetGameData(playerTeam1, playerTeam2, ball);
-            GameManager.instance.StartGame();
+            // GameManager.instance.SetGameData(playerTeam1, playerTeam2, ball);
+            // GameManager.instance.StartGame();
         }
     }
 }

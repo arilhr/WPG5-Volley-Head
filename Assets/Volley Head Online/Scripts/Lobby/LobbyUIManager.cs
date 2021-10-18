@@ -47,9 +47,16 @@ namespace VollyHead.Online
         public void LeaveMatch()
         {
             if (MatchMaker.instance.playerClientInfo.isRoomMaster)
+            {
                 MatchMaker.instance.RequestCancelMatch();
+                Debug.Log($"Request cancel match...");
+            }
             else
+            {
                 MatchMaker.instance.RequestLeaveMatch();
+                Debug.Log($"Request leave match...");
+            }
+                
         }
 
         public void StartMatch()
@@ -69,7 +76,7 @@ namespace VollyHead.Online
             roomController.SetRoom(matchId, isRoomMaster);
         }
 
-        public void UpdateRoom(List<PlayerInfo> team1, List<PlayerInfo> team2)
+        public void UpdateRoom(int playerInRoom, List<PlayerInfo> team1, List<PlayerInfo> team2)
         {
             roomController.ResetRoom();
 
@@ -90,6 +97,15 @@ namespace VollyHead.Online
                 emptySlot.SetName(player.playerName);
                 emptySlot.SetCondition(player.ready);
                 emptySlot.isEmpty = false;
+            }
+
+            if (playerInRoom >= MatchMaker.instance.minPlayerToStart)
+            {
+                roomController.startBtn.SetActive(true);
+            }
+            else
+            {
+                roomController.startBtn.SetActive(false);
             }
         }
 

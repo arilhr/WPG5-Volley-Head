@@ -3378,7 +3378,9 @@ MonoBehaviour:
   playerPrefab: {fileID: 3604311364537775856, guid: 28050cf1385f7b34880ef0add16af9b8, type: 3}
   autoCreatePlayer: 0
   playerSpawnMethod: 0
-  spawnPrefabs: []
+  spawnPrefabs:
+  - {fileID: 4630400874368278380, guid: 149248387fe4ab44f94245c3a6aa431b, type: 3}
+  - {fileID: 6653714949869631951, guid: d168b2e4fb6614047ae0e6fdc0722839, type: 3}
   canvas: {fileID: 1708223790}
   matchmaker: {fileID: 1623726379}
 --- !u!4 &1302175638
@@ -4139,6 +4141,8 @@ MonoBehaviour:
     ready: 0
     matchId: 
   gameScene: Assets/Volley Head Online/Scene/GameScene.unity
+  gameManager: {fileID: 6653714949869631951, guid: d168b2e4fb6614047ae0e6fdc0722839, type: 3}
+  ballObject: {fileID: 4630400874368278380, guid: 149248387fe4ab44f94245c3a6aa431b, type: 3}
 --- !u!4 &1623726380
 Transform:
   m_ObjectHideFlags: 0

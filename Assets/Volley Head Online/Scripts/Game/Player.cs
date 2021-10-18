@@ -14,6 +14,7 @@ namespace VollyHead.Online
             SERVE
         }
 
+        private GameManager gameManager;
         private int team;
 
         [Header("Move Attribute")]
@@ -32,8 +33,7 @@ namespace VollyHead.Online
         private void Start()
         {
             playerRb = GetComponent<Rigidbody2D>();
-            if (isLocalPlayer)
-                UIManager.instance.serveButton.onReleased.AddListener(() => Serve());
+            
         }
 
         private void Update()
@@ -56,9 +56,21 @@ namespace VollyHead.Online
                 
         }
 
-        public void InitializeDataPlayer(int team)
+        [Server]
+        public void InitializeDataServerPlayer(GameManager gameManager, int team)
         {
             this.team = team;
+            this.gameManager = gameManager;
+            CmdInitializeDataClientPlayer(this.gameManager, this.team);
+        }
+
+        [TargetRpc]
+        private void CmdInitializeDataClientPlayer(GameManager gameManager, int team)
+        {
+            this.team = team;
+            this.gameManager = gameManager;
+            if (isLocalPlayer)
+                gameManager.gameUI.serveButton.onReleased.AddListener(() => Serve());
         }
 
         [Client]
@@ -74,7 +86,7 @@ namespace VollyHead.Online
             }
             else if (state == PlayerState.SERVE)
             {
-                if (UIManager.instance.serveButton.IsPressed)
+                if (gameManager.gameUI.serveButton.IsPressed)
                 {
                     IncreasingServePower();
                 }
@@ -102,9 +114,9 @@ namespace VollyHead.Online
             // reset value
             servePower = 0;
             state = PlayerState.SERVE;
+            gameManager.gameUI.SetServeUI();
+            Debug.Log($"Player Serve...");
             // servePowerBar.value = 0;
-
-            UIManager.instance.SetServeUI();
         }
 
         [Client]
@@ -119,7 +131,7 @@ namespace VollyHead.Online
                 servePower += Time.deltaTime;
             }
 
-            UIManager.instance.SetServePowerUI(servePower);
+            gameManager.gameUI.SetServePowerUI(servePower);
             CmdIncreaseServePower(servePower);
         }
 
@@ -139,7 +151,7 @@ namespace VollyHead.Online
         private void CmdServe()
         {
             float finalPower = team == 0 ? servePower : -servePower;
-            GameManager.instance.ball.GetComponent<Ball>().ServeBall(finalPower * servePowerMultiplier);
+            gameManager.ball.GetComponent<Ball>().ServeBall(finalPower * servePowerMultiplier);
             EndServeRpc();
         }
 
@@ -147,7 +159,7 @@ namespace VollyHead.Online
         private void EndServeRpc()
         {
             state = PlayerState.MOVE;
-            UIManager.instance.SetMoveUI();
+            gameManager.gameUI.SetMoveUI();
         }
 
         
@@ -159,7 +171,7 @@ namespace VollyHead.Online
             servePower = 0;
             // servePowerBar.value = 0;
 
-            UIManager.instance.SetMoveUI();
+            gameManager.gameUI.SetMoveUI();
         }
 
         private bool GroundCheck()

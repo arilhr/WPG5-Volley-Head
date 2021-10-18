@@ -8,8 +8,6 @@ namespace VollyHead.Online
 {
     public class GameManager : NetworkBehaviour
     {
-        public static GameManager instance;
-
         [Serializable]
         public struct Team
         {
@@ -21,6 +19,7 @@ namespace VollyHead.Online
         }
 
         [Header("Game")]
+        public UIManager gameUI;
         public float timeToNewRound;
 
         [Header("Team Info")]
@@ -28,37 +27,26 @@ namespace VollyHead.Online
         private Player currentPlayerToServe;
 
         [Header("Environment")]
-        public GameObject ball;
+        public Ball ball;
         public Collider2D midBoundary;
 
-        private void Awake()
-        {
-            if (instance == null)
-            {
-                instance = this;
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
-        }
-
         [Server]
-        public void SetGameData(List<Player> playerTeam1, List<Player> playerTeam2, GameObject ballObject)
+        public void InitializeGameData(List<Player> playerTeam1, List<Player> playerTeam2, Ball _ball)
         {
             foreach (Player player in playerTeam1)
             {
-                player.InitializeDataPlayer(0);
+                player.InitializeDataServerPlayer(this, 0);
                 teams[0].teamPlayer.Add(player);
             }
 
             foreach (Player player in playerTeam2)
             {
-                player.InitializeDataPlayer(1);
+                player.InitializeDataServerPlayer(this, 1);
                 teams[1].teamPlayer.Add(player);
             }
 
-            ball = ballObject;
+            ball = _ball;
+            ball.InitializeBallData(this);
         }
 
         [Server]
@@ -87,6 +75,7 @@ namespace VollyHead.Online
         private void SetStartingPosition()
         {
             // set player starting pos
+            Debug.Log($"Serve area: {teams[currentPlayerToServe.GetTeam()].serveArea.position.x}");
             currentPlayerToServe.transform.position = teams[currentPlayerToServe.GetTeam()].serveArea.position;
             ball.transform.position = teams[currentPlayerToServe.GetTeam()].ballPosOnServe.position;
             currentPlayerToServe.StartServe();
@@ -125,13 +114,20 @@ namespace VollyHead.Online
             // add score
             teams[scoredTeam].score += 1;
 
-            // Score UI updated
-            UIManager.instance.SetScore(teams[0].score, teams[1].score);
+            // scored ui
+            RpcScored();
 
             if (CheckWin(scoredTeam)) return;
 
             // start a new round
             StartCoroutine(StartNewRound(scoredTeam));
+        }
+
+        [ClientRpc]
+        private void RpcScored()
+        {
+            // Score UI updated
+            gameUI.SetScore(teams[0].score, teams[1].score);
         }
 
         [Server]
@@ -165,14 +161,14 @@ namespace VollyHead.Online
         [TargetRpc]
         private void RpcGameLose(NetworkConnection target)
         {
-            UIManager.instance.SetGameEndUI(false);
+            gameUI.SetGameEndUI(false);
             Debug.Log($"Lose...");
         }
 
         [TargetRpc]
         private void RpcGameWin(NetworkConnection target)
         {
-            UIManager.instance.SetGameEndUI(true);
+            gameUI.SetGameEndUI(true);
             Debug.Log($"Win...");
         }
     }
