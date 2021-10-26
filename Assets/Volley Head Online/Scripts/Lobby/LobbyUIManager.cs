@@ -9,9 +9,15 @@ namespace VollyHead.Online
     {
         public static LobbyUIManager instance;
 
+        [Header("MAIN MENU UI")]
         public GameObject mainMenu;
+        [Space(5f)]
+
+        [Header("JOIN ROOM UI")]
         public GameObject joinRoomPanel;
         public TMP_InputField roomCodeInput;
+
+        [Header("ROOM")]
         public GameObject roomPanel;
         public RoomGUI roomController;
 
@@ -46,17 +52,7 @@ namespace VollyHead.Online
 
         public void LeaveMatch()
         {
-            if (MatchMaker.instance.playerClientInfo.isRoomMaster)
-            {
-                MatchMaker.instance.RequestCancelMatch();
-                Debug.Log($"Request cancel match...");
-            }
-            else
-            {
-                MatchMaker.instance.RequestLeaveMatch();
-                Debug.Log($"Request leave match...");
-            }
-                
+            MatchMaker.instance.RequestLeaveMatch();
         }
 
         public void StartMatch()
@@ -76,30 +72,28 @@ namespace VollyHead.Online
             roomController.SetRoom(matchId, isRoomMaster);
         }
 
-        public void UpdateRoom(int playerInRoom, List<PlayerInfo> team1, List<PlayerInfo> team2)
+        public void UpdateRoom(MatchInfo matchInfo)
         {
             roomController.ResetRoom();
 
-            if (MatchMaker.instance.playerClientInfo.team == 1 && team2.Count < 2) roomController.changeTeamBtn.SetActive(true);
-            if (MatchMaker.instance.playerClientInfo.team == 2 && team1.Count < 2) roomController.changeTeamBtn.SetActive(true);
+            if (MatchMaker.instance.playerClientInfo.team == 1 && matchInfo.playerTeam2.Count < 2) roomController.changeTeamBtn.SetActive(true);
+            if (MatchMaker.instance.playerClientInfo.team == 2 && matchInfo.playerTeam1.Count < 2) roomController.changeTeamBtn.SetActive(true);
 
-            foreach (PlayerInfo player in team1)
+            foreach (PlayerInfo player in matchInfo.playerTeam1)
             {
                 PlayerGUI emptySlot = roomController.teams1GUI.Find(x => x.isEmpty);
-                emptySlot.SetName(player.playerName);
-                emptySlot.SetCondition(player.ready);
+                emptySlot.SetPlayerUI(player.playerName, player.isRoomMaster);
                 emptySlot.isEmpty = false;
             }
 
-            foreach (PlayerInfo player in team2)
+            foreach (PlayerInfo player in matchInfo.playerTeam2)
             {
                 PlayerGUI emptySlot = roomController.teams2GUI.Find(x => x.isEmpty);
-                emptySlot.SetName(player.playerName);
-                emptySlot.SetCondition(player.ready);
+                emptySlot.SetPlayerUI(player.playerName, player.isRoomMaster);
                 emptySlot.isEmpty = false;
             }
 
-            if (playerInRoom >= MatchMaker.instance.minPlayerToStart)
+            if (matchInfo.playersCount >= MatchMaker.instance.minPlayerToStart && MatchMaker.instance.playerClientInfo.isRoomMaster)
             {
                 roomController.startBtn.SetActive(true);
             }

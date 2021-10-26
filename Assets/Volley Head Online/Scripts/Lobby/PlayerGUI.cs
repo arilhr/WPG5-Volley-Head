@@ -19,9 +19,13 @@ namespace VollyHead.Online
             SetCondition(false);
         }
 
-        public void SetName(string _name)
+        public void SetPlayerUI(string name, bool isRoomMaster)
         {
-            playerNameText.text = $"{_name}";
+            playerNameText.text = $"{name}";
+            if (isRoomMaster)
+                statusImg.color = new Color32(85, 245, 85, 255);
+            else
+                statusImg.color = new Color32(221, 221, 221, 255);
         }
 
         public void SetCondition(bool isReady)

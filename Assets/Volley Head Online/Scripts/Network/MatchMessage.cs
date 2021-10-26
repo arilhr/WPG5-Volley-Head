@@ -16,10 +16,8 @@ namespace VollyHead.Online
     public struct ClientMatchMessage : NetworkMessage
     {
         public ClientMatchOperation clientMatchOperation;
-        public string matchId;
         public PlayerInfo player;
-        public List<PlayerInfo> playerTeam1;
-        public List<PlayerInfo> playerTeam2;
+        public MatchInfo matchInfo;
     }
 
     public enum ServerMatchOperation : byte

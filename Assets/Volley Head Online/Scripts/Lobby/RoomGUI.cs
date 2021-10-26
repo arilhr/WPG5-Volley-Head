@@ -8,7 +8,6 @@ namespace VollyHead.Online
 {
     public class RoomGUI : MonoBehaviour
     {
-
         public GameObject readyBtn;
         public GameObject startBtn;
         public TMP_Text roomCodeText;

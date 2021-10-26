@@ -16,8 +16,7 @@ namespace VollyHead.Online
         public string matchId;
         public List<PlayerInfo> playerTeam1;
         public List<PlayerInfo> playerTeam2;
-        public int players;
-        public int maxPlayers;
+        public int playersCount;
     }
 
     [Serializable]
@@ -60,8 +59,7 @@ namespace VollyHead.Online
         [Header("PLAYER DATA")]
         public PlayerInfo playerClientInfo;
 
-        [Scene]
-        public string gameScene = string.Empty;
+        [Scene] public string gameScene = string.Empty;
 
         [Header("GAME MANAGER")]
         public GameObject gameManager;
@@ -108,7 +106,7 @@ namespace VollyHead.Online
         {
             if (!NetworkClient.active || currentClientMatchId == string.Empty) return;
 
-            NetworkClient.connection.Send(new ServerMatchMessage { serverMatchOperation = ServerMatchOperation.Leave, matchId = currentClientMatchId });
+            NetworkClient.connection.Send(new ServerMatchMessage { serverMatchOperation = ServerMatchOperation.Leave });
             Debug.Log($"Leave match...");
         }
 
@@ -154,7 +152,8 @@ namespace VollyHead.Online
 
             Debug.Log("On Server Ready!..");
 
-            playerInfos.Add(conn, new PlayerInfo { ready = false });
+            // initialize new player connected
+            playerInfos.Add(conn, new PlayerInfo { matchId = string.Empty, ready = false });
         }
 
         internal void OnServerDisconnect(NetworkConnection conn)
@@ -169,15 +168,10 @@ namespace VollyHead.Online
             // if player disconnected is room master, delete match
             // else, leave match
             PlayerInfo playerInfo = playerInfos[conn];
-            
-            if (playerInfo.isRoomMaster)
-            {
-                OnServerCancelMatch(conn);
-            }
-            else
-            {
-                OnServerLeaveMatch(conn);
-            }
+
+            if (playerInfo.matchId == string.Empty) return;
+
+            OnServerLeaveMatch(conn);
 
             playerInfos.Remove(conn);
         }
@@ -242,7 +236,7 @@ namespace VollyHead.Online
                     }
                 case ServerMatchOperation.Cancel:
                     {
-                        OnServerCancelMatch(conn);
+                        // delete match
                         break;
                     }
                 case ServerMatchOperation.Start:
@@ -267,13 +261,13 @@ namespace VollyHead.Online
                     }
                 case ServerMatchOperation.ChangeTeam:
                     {
-                        OnServerChangeTeam(conn, msg.matchId);
+                        OnServerChangeTeam(conn);
                         break;
                     }
             }
         }
 
-        void OnServerCreateMatch(NetworkConnection conn, PlayerInfo clientInfo)
+        void OnServerCreateMatch(NetworkConnection conn, PlayerInfo info)
         {
             if (!NetworkServer.active) return;
 
@@ -293,7 +287,7 @@ namespace VollyHead.Online
 
             // set player infos
             PlayerInfo playerInfo = playerInfos[conn];
-            playerInfo.playerName = clientInfo.playerName;
+            playerInfo.playerName = info.playerName;
             playerInfo.isRoomMaster = true;
             playerInfo.ready = false;
             playerInfo.team = 1;
@@ -304,9 +298,9 @@ namespace VollyHead.Online
             MatchInfo newMatch = new MatchInfo
             {
                 matchId = newMatchId,
-                maxPlayers = maxPlayerOnMatch,
                 playerTeam1 = new List<PlayerInfo>(),
-                playerTeam2 = new List<PlayerInfo>()
+                playerTeam2 = new List<PlayerInfo>(),
+                playersCount = 1
             };
 
             // add player to team 1 list
@@ -315,16 +309,17 @@ namespace VollyHead.Online
             // add match info to open match list
             openMatches.Add(newMatchGuid, newMatch);
 
-            conn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.Created, matchId = newMatchId, player = playerInfos[conn], playerTeam1 = newMatch.playerTeam1, playerTeam2 = newMatch.playerTeam2 });
+            conn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.Created, player = playerInfos[conn], matchInfo = openMatches[newMatchGuid] });
         }
 
-        void OnServerJoinMatch(NetworkConnection conn, string _matchId, PlayerInfo info)
+        void OnServerJoinMatch(NetworkConnection conn, string matchId, PlayerInfo info)
         {
             // convert match id to Guid
-            Guid matchGuid = _matchId.ToGuid();
+            Guid matchGuid = matchId.ToGuid();
 
             if (!NetworkServer.active || !matchConnections.ContainsKey(matchGuid) || !openMatches.ContainsKey(matchGuid)) return;
-            if (openMatches[matchGuid].players >= openMatches[matchGuid].maxPlayers) return;
+
+            if (openMatches[matchGuid].playersCount >= maxPlayerOnMatch) return;
 
             // update player and match info
             PlayerInfo playerInfo = playerInfos[conn];
@@ -332,8 +327,8 @@ namespace VollyHead.Online
             playerInfo.playerName = info.playerName;
             playerInfo.isRoomMaster = false;
             playerInfo.ready = false;
-            playerInfo.matchId = _matchId;
-            matchInfo.players++;
+            playerInfo.matchId = matchId;
+            matchInfo.playersCount++;
             if (matchInfo.playerTeam1.Count < 2)
             {
                 playerInfo.team = 1;
@@ -350,24 +345,29 @@ namespace VollyHead.Online
 
             Debug.Log($"{playerInfo.playerName} is join team {playerInfo.team}");
 
-            conn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.Joined, player = playerInfos[conn], matchId = _matchId, playerTeam1 = matchInfo.playerTeam1, playerTeam2 = matchInfo.playerTeam2 });
+            conn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.Joined, player = playerInfos[conn], matchInfo = openMatches[matchGuid] });
 
             // update room another player on room 
             foreach (NetworkConnection playerConn in matchConnections[matchGuid])
             {
-                playerConn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.UpdateRoom, player = playerInfos[playerConn], playerTeam1 = matchInfo.playerTeam1, playerTeam2 = matchInfo.playerTeam2 });
+                playerConn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.UpdateRoom, player = playerInfos[playerConn], matchInfo = openMatches[matchGuid] });
             }
 
             Debug.Log("Join Success");
         }
 
-        void OnServerChangeTeam(NetworkConnection conn, string matchId)
+        void OnServerChangeTeam(NetworkConnection conn)
         {
-            if (!NetworkServer.active) return;
+            if (!NetworkServer.active || playerInfos[conn].matchId == string.Empty) return;
 
-            Guid matchGuid = matchId.ToGuid();
+            // get player info
             PlayerInfo playerInfo = playerInfos[conn];
+            // get match id
+            Guid matchGuid = playerInfo.matchId.ToGuid();
+            // get match info
             MatchInfo matchInfo = openMatches[matchGuid];
+
+            // change player team on match info
             if (playerInfo.team == 1)
             {
                 playerInfo.team = 2;
@@ -384,11 +384,12 @@ namespace VollyHead.Online
             playerInfos[conn] = playerInfo;
             openMatches[matchGuid] = matchInfo;
 
+            // update room
             conn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.ChangedTeam, player = playerInfos[conn] });
 
             foreach (NetworkConnection playerConn in matchConnections[matchGuid])
             {
-                playerConn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.UpdateRoom, player = playerInfos[conn], playerTeam1 = matchInfo.playerTeam1, playerTeam2 = matchInfo.playerTeam2 });
+                playerConn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.UpdateRoom, player = playerInfos[playerConn], matchInfo = openMatches[matchGuid] });
             }
 
             Debug.Log($"Change team success..");
@@ -396,12 +397,54 @@ namespace VollyHead.Online
 
         void OnServerLeaveMatch(NetworkConnection conn)
         {
-            if (!NetworkServer.active || currentClientMatchId == string.Empty) return;
+            if (!NetworkServer.active || playerInfos[conn].matchId == string.Empty) return;
 
-            Debug.Log($"{playerInfos[conn].playerName} Leave match...");
-            Guid matchGuid = currentClientMatchId.ToGuid();
+            Guid matchGuid = playerInfos[conn].matchId.ToGuid();
             MatchInfo matchInfo = openMatches[matchGuid];
             PlayerInfo playerInfo = playerInfos[conn];
+
+            // remove connection from match connection list
+            foreach (KeyValuePair<Guid, HashSet<NetworkConnection>> kvp in matchConnections)
+            {
+                kvp.Value.Remove(conn);
+            }
+
+            // if player leave is room master and there is still other player in room
+            // pass the room master to other player
+            // if there is no player anymore, delete the match
+            if (playerInfo.isRoomMaster)
+            {
+                if (matchInfo.playersCount > 1)
+                {
+                    // update player info room master
+                    NetworkConnection newRoomMasterConn = matchConnections[matchGuid].ElementAt(0);
+                    PlayerInfo newRoomMasterInfo = playerInfos[newRoomMasterConn];
+                    newRoomMasterInfo.isRoomMaster = true;
+
+                    // update match info
+                    if (newRoomMasterInfo.team == 1)
+                    {
+                        matchInfo.playerTeam1.Remove(playerInfos[newRoomMasterConn]);
+                        matchInfo.playerTeam1.Add(newRoomMasterInfo);
+                    }
+                    else
+                    {
+                        matchInfo.playerTeam2.Remove(playerInfos[newRoomMasterConn]);
+                        matchInfo.playerTeam2.Add(newRoomMasterInfo);
+                    }
+
+                    playerInfos[newRoomMasterConn] = newRoomMasterInfo;
+
+                    playerMatches.Remove(conn);
+                    playerMatches.Add(newRoomMasterConn, matchGuid);
+                }
+                else
+                {
+                    // delete match
+                    OnServerDeleteMatch(conn);
+                    return;
+                }
+            }
 
             // remove player info from list team match info
             if (playerInfo.team == 1)
@@ -419,27 +462,23 @@ namespace VollyHead.Online
             playerInfo.team = 0;
 
             // substract player count on match info
-            matchInfo.players--;
+            matchInfo.playersCount--;
 
             playerInfos[conn] = playerInfo;
             openMatches[matchGuid] = matchInfo;
 
-            // remove connection from match connection list
-            foreach (KeyValuePair<Guid, HashSet<NetworkConnection>> kvp in matchConnections)
-            {
-                kvp.Value.Remove(conn);
-            }
-
-            // udpate room for another player on room
+            // send message update room to another player on room
             foreach (NetworkConnection playerConn in matchConnections[matchGuid])
             {
-                playerConn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.UpdateRoom, player = playerInfos[playerConn], playerTeam1 = matchInfo.playerTeam1, playerTeam2 = matchInfo.playerTeam2 });
+                playerConn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.UpdateRoom, player = playerInfos[playerConn], matchInfo = openMatches[matchGuid] });
             }
 
             conn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.Departed });
+
+            Debug.Log($"{playerInfos[conn].playerName} Leave match...");
         }
 
-        void OnServerCancelMatch(NetworkConnection conn)
+        void OnServerDeleteMatch(NetworkConnection conn)
         {
             if (!NetworkServer.active || playerInfos[conn].matchId == string.Empty || !playerInfos[conn].isRoomMaster) return;
 
@@ -462,7 +501,7 @@ namespace VollyHead.Online
                 }
             }
 
-            Debug.Log($"Cancel match...");
+            Debug.Log($"Delete match...");
         }
 
         void OnServerStartMatch(NetworkConnection conn)
@@ -542,7 +581,7 @@ namespace VollyHead.Online
                     }
                 case ClientMatchOperation.Created:
                     {
-                        OnClientCreateMatch(msg.player, msg.playerTeam1, msg.playerTeam2, msg.matchId);
+                        OnClientCreateMatch(msg.player, msg.matchInfo);
                         break;
                     }
                 case ClientMatchOperation.Cancelled:
@@ -553,7 +592,7 @@ namespace VollyHead.Online
                     }
                 case ClientMatchOperation.Joined:
                     {
-                        OnClientJoined(msg.player, msg.playerTeam1, msg.playerTeam2, msg.matchId);
+                        OnClientJoined(msg.player, msg.matchInfo);
                         break;
                     }
                 case ClientMatchOperation.Departed:
@@ -563,7 +602,7 @@ namespace VollyHead.Online
                     }
                 case ClientMatchOperation.UpdateRoom:
                     {
-                        OnClientUpdatedRoom(msg.playerTeam1, msg.playerTeam2);
+                        OnClientUpdatedRoom(msg.player, msg.matchInfo);
                         break;
                     }
                 case ClientMatchOperation.ChangedTeam:
@@ -579,28 +618,28 @@ namespace VollyHead.Online
             }
         }
 
-        void OnClientCreateMatch(PlayerInfo player, List<PlayerInfo> team1, List<PlayerInfo> team2, string _matchId)
+        void OnClientCreateMatch(PlayerInfo player, MatchInfo matchInfo)
         {
-            currentClientMatchId = _matchId;
+            currentClientMatchId = matchInfo.matchId;
             playerClientInfo = player;
 
             // set room and match id ui
-            LobbyUIManager.instance.ShowMatchRoom(_matchId, playerClientInfo.isRoomMaster);
+            LobbyUIManager.instance.ShowMatchRoom(currentClientMatchId, playerClientInfo.isRoomMaster);
 
             // update room
-            LobbyUIManager.instance.UpdateRoom(team1.Count + team2.Count, team1, team2);
+            LobbyUIManager.instance.UpdateRoom(matchInfo);
         }
 
-        void OnClientJoined(PlayerInfo player, List<PlayerInfo> team1, List<PlayerInfo> team2, string _matchId)
+        void OnClientJoined(PlayerInfo player, MatchInfo matchInfo)
         {
-            currentClientMatchId = _matchId;
+            currentClientMatchId = matchInfo.matchId;
             playerClientInfo = player;
 
             // set room and match id ui
-            LobbyUIManager.instance.ShowMatchRoom(_matchId, playerClientInfo.isRoomMaster);
+            LobbyUIManager.instance.ShowMatchRoom(currentClientMatchId, playerClientInfo.isRoomMaster);
 
             // update room
-            LobbyUIManager.instance.UpdateRoom(team1.Count + team2.Count, team1, team2);
+            LobbyUIManager.instance.UpdateRoom(matchInfo);
         }
 
         void OnClientDeparted()
@@ -625,10 +664,12 @@ namespace VollyHead.Online
             playerClientInfo = playerChanged;
         }
 
-        void OnClientUpdatedRoom(List<PlayerInfo> team1, List<PlayerInfo> team2)
+        void OnClientUpdatedRoom(PlayerInfo player, MatchInfo matchInfo)
         {
+            playerClientInfo = player;
+
             // update room player ui
-            LobbyUIManager.instance.UpdateRoom(team1.Count + team2.Count, team1, team2);
+            LobbyUIManager.instance.UpdateRoom(matchInfo);
         }
 
         void OnClientMatchStarted()
