@@ -20,6 +20,7 @@ namespace VollyHead.Online
         public GameObject movementUI;
         public CustomButton leftButton;
         public CustomButton rightButton;
+        public CustomButton jumpButton;
 
         [Header("Game End UI")]
         public GameObject gameEndPanel;

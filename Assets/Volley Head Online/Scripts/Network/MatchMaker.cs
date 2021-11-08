@@ -400,6 +400,9 @@ namespace VollyHead.Online
             if (!NetworkServer.active || playerInfos[conn].matchId == string.Empty) return;
 
             Guid matchGuid = playerInfos[conn].matchId.ToGuid();
+
+            if (!openMatches.ContainsKey(matchGuid)) return;
+
             MatchInfo matchInfo = openMatches[matchGuid];
             PlayerInfo playerInfo = playerInfos[conn];
 
@@ -442,18 +445,19 @@ namespace VollyHead.Online
                 {
                     // delete match
                     OnServerDeleteMatch(conn);
-                    return;
                 }
-            }
-
-            // remove player info from list team match info
-            if (playerInfo.team == 1)
-            {
-                matchInfo.playerTeam1.Remove(playerInfos[conn]);
-            }
+            } 
             else
             {
-                matchInfo.playerTeam2.Remove(playerInfos[conn]);
+                // remove player info from list team match info
+                if (playerInfo.team == 1)
+                {
+                    matchInfo.playerTeam1.Remove(playerInfos[conn]);
+                }
+                else
+                {
+                    matchInfo.playerTeam2.Remove(playerInfos[conn]);
+                }
             }
             
             // reset player info
@@ -518,17 +522,20 @@ namespace VollyHead.Online
 
         IEnumerator ServerLoadGameScene(NetworkConnection conn, Guid matchGuid)
         {
+            // load scene
             yield return SceneManager.LoadSceneAsync(gameScene, new LoadSceneParameters { loadSceneMode = LoadSceneMode.Additive, localPhysicsMode = LocalPhysicsMode.Physics2D});
 
             Scene newMatchScene = SceneManager.GetSceneAt(matchStartScenes.Count + 1);
             matchStartScenes.Add(matchGuid, newMatchScene);
 
-            List<Player> team1 = new List<Player>();
-            List<Player> team2 = new List<Player>();
+            // spawn game manager
             GameObject gameManagerObj = Instantiate(gameManager);
             NetworkServer.Spawn(gameManagerObj);
             GameManager gm = gameManagerObj.GetComponent<GameManager>();
 
+            // spawn player
+            List<Player> team1 = new List<Player>();
+            List<Player> team2 = new List<Player>();
             foreach (NetworkConnection playerConn in matchConnections[matchGuid])
             {
                 playerConn.Send(new SceneMessage { sceneName = gameScene, sceneOperation = SceneOperation.LoadAdditive });
@@ -536,9 +543,13 @@ namespace VollyHead.Online
                 GameObject player = Instantiate(NetworkManager.singleton.playerPrefab);
                 Player playerManager = player.GetComponent<Player>();
                 if (playerInfos[playerConn].team == 1)
+                {
                     team1.Add(playerManager);
+                }
                 else if (playerInfos[playerConn].team == 2)
+                {
                     team2.Add(playerManager);
+                }
                 player.GetComponent<NetworkMatch>().matchId = matchGuid;
                 NetworkServer.AddPlayerForConnection(playerConn, player);
 
@@ -561,9 +572,9 @@ namespace VollyHead.Online
 
             gm.StartGame();
 
-            playerMatches.Remove(conn);
-            openMatches.Remove(matchGuid);
-            matchConnections.Remove(matchGuid);
+            // playerMatches.Remove(conn);
+            // openMatches.Remove(matchGuid);
+            // matchConnections.Remove(matchGuid);
         }
         #endregion
 

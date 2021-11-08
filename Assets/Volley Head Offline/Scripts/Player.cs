@@ -33,9 +33,11 @@ namespace VollyHead.Offline
         private Rigidbody2D playerRb;
         private Vector2 inputHorizontal;
 
+
         private void Start()
         {
             playerRb = GetComponent<Rigidbody2D>();
+            
             InitializeInputPlayer();
         }
 
@@ -52,6 +54,8 @@ namespace VollyHead.Offline
         {
             if (playerState == PlayerState.Move)
                 Move();
+
+            Debug.Log($"{GroundCheck()}");
         }
 
         private void InitializeInputPlayer()
@@ -63,7 +67,10 @@ namespace VollyHead.Offline
         {
             if (playerState == PlayerState.Move)
             {
-                
+                if (Input.GetKeyDown(KeyCode.W))
+                {
+                    Jump();
+                }
             }
             else if (playerState == PlayerState.Serve)
             {
@@ -78,6 +85,8 @@ namespace VollyHead.Offline
 
         private void Jump()
         {
+            
+
             if (GroundCheck() && playerState == PlayerState.Move)
             {
                 playerRb.AddForce(new Vector2(0, jumpForce * 10));

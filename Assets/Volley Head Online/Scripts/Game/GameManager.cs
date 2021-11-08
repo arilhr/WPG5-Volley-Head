@@ -115,7 +115,7 @@ namespace VollyHead.Online
             teams[scoredTeam].score += 1;
 
             // scored ui
-            RpcScored();
+            RpcScored(teams[0].score, teams[1].score);
 
             if (CheckWin(scoredTeam)) return;
 
@@ -124,10 +124,12 @@ namespace VollyHead.Online
         }
 
         [ClientRpc]
-        private void RpcScored()
+        private void RpcScored(int team1Score, int team2Score)
         {
+            Debug.Log($"{team1Score} || {team2Score}");
+
             // Score UI updated
-            gameUI.SetScore(teams[0].score, teams[1].score);
+            gameUI.SetScore(team1Score, team2Score);
         }
 
         [Server]

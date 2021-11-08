@@ -29,11 +29,11 @@ namespace VollyHead.Online
         private float servePower;
 
         private PlayerState state = PlayerState.MOVE;
+        private PhysicsScene2D physicsScene;
 
         private void Start()
         {
             playerRb = GetComponent<Rigidbody2D>();
-            
         }
 
         private void Update()
@@ -52,8 +52,7 @@ namespace VollyHead.Online
                 {
                     CmdMove(inputHorizontal);
                 }
-            }
-                
+            }  
         }
 
         [Server]
@@ -61,6 +60,10 @@ namespace VollyHead.Online
         {
             this.team = team;
             this.gameManager = gameManager;
+            if (isServer)
+            {
+                physicsScene = gameObject.scene.GetPhysicsScene2D();
+            }
             CmdInitializeDataClientPlayer(this.gameManager, this.team);
         }
 
@@ -70,7 +73,10 @@ namespace VollyHead.Online
             this.team = team;
             this.gameManager = gameManager;
             if (isLocalPlayer)
+            {
                 gameManager.gameUI.serveButton.onReleased.AddListener(() => Serve());
+                gameManager.gameUI.jumpButton.onPressed.AddListener(() => CmdJump());
+            }
         }
 
         [Client]
@@ -79,9 +85,14 @@ namespace VollyHead.Online
             if (state == PlayerState.MOVE)
             {
                 inputHorizontal = Input.GetAxisRaw("Horizontal");
-                if (Input.GetKeyDown(KeyCode.Space))
+
+                if (gameManager.gameUI.leftButton.IsPressed)
                 {
-                    CmdJump();
+                    inputHorizontal = -1;
+                }
+                else if (gameManager.gameUI.rightButton.IsPressed)
+                {
+                    inputHorizontal = 1;
                 }
             }
             else if (state == PlayerState.SERVE)
@@ -162,8 +173,6 @@ namespace VollyHead.Online
             gameManager.gameUI.SetMoveUI();
         }
 
-        
-
         [TargetRpc]
         public void StartMove()
         {
@@ -176,9 +185,9 @@ namespace VollyHead.Online
 
         private bool GroundCheck()
         {
-            float offsetHeight = 1f;
+            float offsetHeight = 0f;
             Collider2D collider = GetComponentInChildren<Collider2D>();
-            RaycastHit2D raycastHit = Physics2D.BoxCast(collider.bounds.center, collider.bounds.size, 0f, Vector2.down, offsetHeight, groundLayer);
+            RaycastHit2D raycastHit = physicsScene.BoxCast(collider.bounds.center, collider.bounds.size, 0f, Vector2.down, offsetHeight, groundLayer);
 
             return raycastHit.collider != null;
         }

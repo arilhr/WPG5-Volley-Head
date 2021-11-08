@@ -596,6 +596,7 @@ GameObject:
   - component: {fileID: 6653714948612869027}
   - component: {fileID: 6653714948612869026}
   - component: {fileID: 6653714948612869021}
+  - component: {fileID: 5418645040752085343}
   m_Layer: 5
   m_Name: Jump Btn
   m_TagString: Untagged
@@ -705,6 +706,25 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5418645040752085343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6653714948612869022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9adfa1b36e9bdbb4795309b301ba461b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  IsPressed: 0
+  onPressed:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &6653714948655452625
 GameObject:
   m_ObjectHideFlags: 0
@@ -717,6 +737,7 @@ GameObject:
   - component: {fileID: 6653714948655452634}
   - component: {fileID: 6653714948655452629}
   - component: {fileID: 6653714948655452628}
+  - component: {fileID: 274693365419105068}
   m_Layer: 5
   m_Name: Left Btn
   m_TagString: Untagged
@@ -824,6 +845,25 @@ MonoBehaviour:
   m_Interactable: 1
   m_TargetGraphic: {fileID: 6653714948655452629}
   m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &274693365419105068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6653714948655452625}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9adfa1b36e9bdbb4795309b301ba461b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  IsPressed: 0
+  onPressed:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
     m_PersistentCalls:
       m_Calls: []
 --- !u!1 &6653714948828746306
@@ -1214,8 +1254,9 @@ MonoBehaviour:
   serveBar: {fileID: 6653714949159618016}
   serveButton: {fileID: 6653714949687366579}
   movementUI: {fileID: 6653714948440272259}
-  leftButton: {fileID: 0}
-  rightButton: {fileID: 0}
+  leftButton: {fileID: 274693365419105068}
+  rightButton: {fileID: 2318148812702737641}
+  jumpButton: {fileID: 5418645040752085343}
   gameEndPanel: {fileID: 6653714949358587094}
   informationText: {fileID: 6653714949685463064}
   startAgainBtn: {fileID: 6653714949387663442}
@@ -2035,6 +2076,7 @@ GameObject:
   - component: {fileID: 6653714949475106206}
   - component: {fileID: 6653714949475106201}
   - component: {fileID: 6653714949475106200}
+  - component: {fileID: 2318148812702737641}
   m_Layer: 5
   m_Name: Right Btn
   m_TagString: Untagged
@@ -2142,6 +2184,25 @@ MonoBehaviour:
   m_Interactable: 1
   m_TargetGraphic: {fileID: 6653714949475106201}
   m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &2318148812702737641
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6653714949475106197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9adfa1b36e9bdbb4795309b301ba461b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  IsPressed: 0
+  onPressed:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
     m_PersistentCalls:
       m_Calls: []
 --- !u!1 &6653714949685463066
