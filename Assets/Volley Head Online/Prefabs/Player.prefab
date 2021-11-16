@@ -210,7 +210,7 @@ MonoBehaviour:
   clientAuthority: 0
   sendInterval: 0
   syncPosition: 1
-  syncRotation: 1
+  syncRotation: 0
   syncScale: 0
   interpolatePosition: 1
   interpolateRotation: 1

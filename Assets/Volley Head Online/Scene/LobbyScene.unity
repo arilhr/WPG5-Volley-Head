@@ -3380,7 +3380,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b0fecffa3f624585964b0d0eb21b18e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Port: 8000
+  Port: 7777
   DualMode: 1
   NoDelay: 1
   Interval: 10
@@ -3409,11 +3409,11 @@ MonoBehaviour:
   PersistNetworkManagerToOfflineScene: 0
   runInBackground: 1
   autoStartServerBuild: 1
-  serverTickRate: 30
+  serverTickRate: 60
   offlineScene: 
   onlineScene: 
   transport: {fileID: 1302175636}
-  networkAddress: 127.0.0.1
+  networkAddress: localhost
   maxConnections: 100
   disconnectInactiveConnections: 0
   disconnectInactiveTimeout: 60

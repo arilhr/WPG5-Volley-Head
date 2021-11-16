@@ -22,7 +22,7 @@ namespace VollyHead.Online
         public float jumpForce;
         public LayerMask groundLayer;
         private Rigidbody2D playerRb;
-        private float inputHorizontal;
+        private int inputHorizontal;
 
         [Header("Serve Attribute")]
         public float servePowerMultiplier = 100f;
@@ -41,18 +41,16 @@ namespace VollyHead.Online
             if (isLocalPlayer)
             {
                 InputPlayer();
+                CmdInputHorizontal(inputHorizontal);
             }
         }
 
         private void FixedUpdate()
         {
-            if (isLocalPlayer)
+            if (isServer)
             {
-                if (state == PlayerState.MOVE)
-                {
-                    CmdMove(inputHorizontal);
-                }
-            }  
+                Move(inputHorizontal);
+            }
         }
 
         [Server]
@@ -74,7 +72,7 @@ namespace VollyHead.Online
             this.gameManager = gameManager;
             if (isLocalPlayer)
             {
-                gameManager.gameUI.serveButton.onReleased.AddListener(() => Serve());
+                gameManager.gameUI.serveButton.onReleased.AddListener(() => CmdServe());
                 gameManager.gameUI.jumpButton.onPressed.AddListener(() => CmdJump());
             }
         }
@@ -84,7 +82,7 @@ namespace VollyHead.Online
         {
             if (state == PlayerState.MOVE)
             {
-                inputHorizontal = Input.GetAxisRaw("Horizontal");
+                inputHorizontal = (int) Input.GetAxisRaw("Horizontal");
 
                 if (gameManager.gameUI.leftButton.IsPressed)
                 {
@@ -103,9 +101,15 @@ namespace VollyHead.Online
                 }
             }
         }
-        
+
         [Command]
-        private void CmdMove(float direction)
+        private void CmdInputHorizontal(int currentInput)
+        {
+            inputHorizontal = currentInput;
+        }
+        
+        [Server]
+        private void Move(int direction)
         {
             playerRb.velocity = new Vector2(speed * direction * Time.fixedDeltaTime * 10, playerRb.velocity.y);
         }
@@ -150,12 +154,6 @@ namespace VollyHead.Online
         private void CmdIncreaseServePower(float power)
         {
             servePower = power;
-        }
-
-        [Client]
-        private void Serve()
-        {
-            CmdServe();
         }
 
         [Command]

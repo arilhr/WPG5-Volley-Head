@@ -88,6 +88,7 @@ namespace VollyHead.Online
                 canvas.SetActive(true);
 
             matchmaker.OnStartServer();
+            Debug.Log($"Connect on IP: {networkAddress}");
         }
 
         /// <summary>
