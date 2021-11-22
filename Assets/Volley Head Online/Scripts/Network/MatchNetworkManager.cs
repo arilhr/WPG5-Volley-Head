@@ -2,6 +2,7 @@ using Mirror;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace VollyHead.Online
 {
@@ -114,9 +115,20 @@ namespace VollyHead.Online
         /// </summary>
         public override void OnStopClient()
         {
+            StartCoroutine(ClientUnloadSubScenes());
             matchmaker.OnStopClient();
         }
 
         #endregion
+
+        // Unload all but the active scene, which is the "container" scene
+        IEnumerator ClientUnloadSubScenes()
+        {
+            for (int index = 0; index < SceneManager.sceneCount; index++)
+            {
+                if (SceneManager.GetSceneAt(index) != SceneManager.GetActiveScene())
+                    yield return SceneManager.UnloadSceneAsync(SceneManager.GetSceneAt(index));
+            }
+        }
     }
 }

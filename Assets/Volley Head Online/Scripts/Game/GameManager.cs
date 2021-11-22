@@ -173,5 +173,42 @@ namespace VollyHead.Online
             gameUI.SetGameEndUI(true);
             Debug.Log($"Win...");
         }
+
+        public void OnPlayerDisconnected(NetworkConnection conn)
+        {
+            StartCoroutine(ServerEndMatch(conn));
+        }
+
+        // match disconnected
+        public IEnumerator ServerEndMatch(NetworkConnection conn)
+        {
+            MatchMaker.instance.OnPlayerDisconnected -= OnPlayerDisconnected;
+
+            NetworkServer.Destroy(ball.gameObject);
+
+            // Skip a frame so the message goes out ahead of object destruction
+            yield return null;
+
+            string matchId = MatchMaker.instance.playerInfos[conn].matchId;
+
+            foreach (NetworkConnection playerConn in MatchMaker.instance.matchConnections[matchId.ToGuid()])
+            {
+                if (playerConn != conn)
+                {
+                    RpcExitGame(playerConn);
+                    NetworkServer.RemovePlayerForConnection(playerConn, true);
+                    playerConn.Send(new SceneMessage { sceneName = MatchMaker.instance.gameScene, sceneOperation = SceneOperation.UnloadAdditive });
+                }
+            }
+
+            NetworkServer.Destroy(gameObject);
+        }
+
+        [TargetRpc]
+        private void RpcExitGame(NetworkConnection conn)
+        {
+            Debug.Log($"Match End.");
+            LobbyUIManager.instance.ResetLobby();
+        }
     }
 }

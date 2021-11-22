@@ -9,6 +9,8 @@ namespace VollyHead.Online
     {
         public static LobbyUIManager instance;
 
+        public GameObject lobbyObject;
+
         [Header("MAIN MENU UI")]
         public GameObject mainMenu;
         [Space(5f)]
@@ -105,6 +107,7 @@ namespace VollyHead.Online
 
         public void ResetLobby()
         {
+            lobbyObject.SetActive(true);
             mainMenu.SetActive(true);
             joinRoomPanel.SetActive(false);
             roomPanel.SetActive(false);

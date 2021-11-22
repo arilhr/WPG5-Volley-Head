@@ -17,6 +17,7 @@ namespace VollyHead.Online
         public List<PlayerInfo> playerTeam1;
         public List<PlayerInfo> playerTeam2;
         public int playersCount;
+        public bool isStarted;
     }
 
     [Serializable]
@@ -169,11 +170,18 @@ namespace VollyHead.Online
             // else, leave match
             PlayerInfo playerInfo = playerInfos[conn];
 
-            if (playerInfo.matchId == string.Empty) return;
-
-            OnServerLeaveMatch(conn);
-
-            playerInfos.Remove(conn);
+            if (playerInfo.matchId != string.Empty)
+            {
+                if (!openMatches[playerInfo.matchId.ToGuid()].isStarted)
+                {
+                    OnServerLeaveMatch(conn);
+                    playerInfos.Remove(conn);
+                }
+            }
+            else
+            {
+                playerInfos.Remove(conn);
+            }
         }
 
         internal void OnStopServer()
@@ -300,7 +308,8 @@ namespace VollyHead.Online
                 matchId = newMatchId,
                 playerTeam1 = new List<PlayerInfo>(),
                 playerTeam2 = new List<PlayerInfo>(),
-                playersCount = 1
+                playersCount = 1,
+                isStarted = false
             };
 
             // add player to team 1 list
@@ -572,9 +581,19 @@ namespace VollyHead.Online
 
             gm.StartGame();
 
-            // playerMatches.Remove(conn);
-            // openMatches.Remove(matchGuid);
-            // matchConnections.Remove(matchGuid);
+            MatchInfo startedMatch = openMatches[matchGuid];
+            startedMatch.isStarted = true;
+            openMatches[matchGuid] = startedMatch;
+
+            playerMatches.Remove(conn);
+
+            OnPlayerDisconnected += gm.OnPlayerDisconnected;
+        }
+
+        public void OnServerMatchEnded(string matchId)
+        {
+            openMatches.Remove(matchId.ToGuid());
+            matchConnections.Remove(matchId.ToGuid());
         }
         #endregion
 
