@@ -1,0 +1,3 @@
+- penambahan mockup (berdasarkan asset yang sudah dibuat)
+- penambahan asset dan character
+- penambahan deskripsi pada beberapa bagian (design, engine, refrensi)
