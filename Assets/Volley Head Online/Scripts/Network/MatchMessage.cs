@@ -23,18 +23,21 @@ namespace VollyHead.Online
     public enum ServerMatchOperation : byte
     {
         None,
+        Connect,
+        ChangeName,
         Create,
         Cancel,
         Start,
         Join,
         Leave,
         Ready,
-        ChangeTeam
+        ChangeTeam,
     }
 
     public enum ClientMatchOperation : byte
     {
         None,
+        ChangeName,
         Created,
         Cancelled,
         Joined,

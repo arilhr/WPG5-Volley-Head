@@ -11,10 +11,21 @@ namespace VollyHead.Online
 
         public string playerName;
 
+        [Header("UI")]
+        public GameObject setNameObject;
+        public TMP_InputField inputName;
+
         private void Awake()
         {
-            if (instance == null) instance = this;
-            else Destroy(gameObject);
+            if (instance == null)
+            {
+                instance = this;
+                DontDestroyOnLoad(this);
+            }
+            else
+            {
+                Destroy(this.gameObject);
+            }
         }
 
         private void Start()
@@ -22,12 +33,32 @@ namespace VollyHead.Online
             if (playerName == string.Empty)
             {
                 // TODO: Lobby UI Create Name
+                setNameObject.SetActive(true);
+            }
+            else
+            {
+                setNameObject.SetActive(false);
             }
         }
 
         public void SetName(string newName)
         {
             playerName = newName;
+
+            MatchMaker.instance.RequestChangeName(newName);
         }
+
+        #region UI Function
+        public void ConfirmSetName()
+        {
+            SetName(inputName.text);
+        }
+
+        public void ChangeSuccess()
+        {
+            inputName.text = string.Empty;
+            setNameObject.SetActive(false);
+        }
+        #endregion
     }
 }

@@ -132,6 +132,14 @@ namespace VollyHead.Online
             NetworkClient.connection.Send(new ServerMatchMessage { serverMatchOperation = ServerMatchOperation.Start });
         }
 
+        public void RequestChangeName(string newName)
+        {
+            if (!NetworkClient.active) return;
+
+            playerClientInfo.playerName = newName;
+            NetworkClient.connection.Send(new ServerMatchMessage { serverMatchOperation = ServerMatchOperation.ChangeName, playerInfo = playerClientInfo});
+        }
+
         #endregion
 
         #region Server Callbacks
@@ -152,9 +160,6 @@ namespace VollyHead.Online
             if (!NetworkServer.active) return;
 
             Debug.Log("On Server Ready!..");
-
-            // initialize new player connected
-            playerInfos.Add(conn, new PlayerInfo { matchId = string.Empty, ready = false });
         }
 
         internal void OnServerDisconnect(NetworkConnection conn)
@@ -196,7 +201,6 @@ namespace VollyHead.Online
         internal void OnClientConnect(NetworkConnection conn)
         {
             Debug.Log("On Client Connect!..");
-            playerInfos.Add(conn, new PlayerInfo { ready = false }); ;
         }
 
         internal void OnStartClient()
@@ -206,6 +210,8 @@ namespace VollyHead.Online
             InitializeData();
             
             NetworkClient.RegisterHandler<ClientMatchMessage>(OnClientMatchMessage);
+
+            NetworkClient.connection.Send(new ServerMatchMessage { serverMatchOperation = ServerMatchOperation.Connect, playerInfo = playerClientInfo });
         }
 
         internal void OnClientDisconnect()
@@ -235,6 +241,16 @@ namespace VollyHead.Online
                 case ServerMatchOperation.None:
                     {
                         Debug.LogWarning("Missing ServerMatchOperation");
+                        break;
+                    }
+                case ServerMatchOperation.Connect:
+                    {
+                        OnServerClientConnected(conn, msg.playerInfo);
+                        break;
+                    }
+                case ServerMatchOperation.ChangeName:
+                    {
+                        OnServerChangeName(conn, msg.playerInfo);
                         break;
                     }
                 case ServerMatchOperation.Create:
@@ -273,6 +289,24 @@ namespace VollyHead.Online
                         break;
                     }
             }
+        }
+
+        void OnServerClientConnected(NetworkConnection conn, PlayerInfo info)
+        {
+            playerInfos.Add(conn, info);
+
+            Debug.Log($"{playerInfos[conn].playerName} is online.");
+        }
+
+        void OnServerChangeName(NetworkConnection conn, PlayerInfo info)
+        {
+            PlayerInfo changedInfo = playerInfos[conn];
+            changedInfo.playerName = info.playerName;
+
+            playerInfos[conn] = changedInfo;
+
+            // send to client change name is success
+            conn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.ChangeName });
         }
 
         void OnServerCreateMatch(NetworkConnection conn, PlayerInfo info)
@@ -609,6 +643,11 @@ namespace VollyHead.Online
                         Debug.LogWarning("Missing ClientMatchOperation");
                         break;
                     }
+                case ClientMatchOperation.ChangeName:
+                    {
+                        OnClientChangeNameSuccess();
+                        break;
+                    }
                 case ClientMatchOperation.Created:
                     {
                         OnClientCreateMatch(msg.player, msg.matchInfo);
@@ -646,6 +685,11 @@ namespace VollyHead.Online
                         break;
                     }
             }
+        }
+
+        void OnClientChangeNameSuccess()
+        {
+            PlayerData.instance.ChangeSuccess();
         }
 
         void OnClientCreateMatch(PlayerInfo player, MatchInfo matchInfo)
