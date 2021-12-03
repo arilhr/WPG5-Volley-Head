@@ -64,6 +64,7 @@ namespace VollyHead.Online
         {
             isPlayed = true;
             ballRb.gravityScale = 0;
+            ballRb.angularVelocity = 0;
             ballRb.velocity = Vector2.zero;
         }
 
@@ -99,6 +100,10 @@ namespace VollyHead.Online
                 ballRb.velocity = Vector3.ClampMagnitude(ballRb.velocity, maxSpeed);
             }
         }
+
+        #region Touch Ball In Rule
+
+        #endregion
 
         private void OnCollisionEnter2D(Collision2D collision)
         {

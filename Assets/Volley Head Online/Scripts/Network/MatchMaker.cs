@@ -628,6 +628,13 @@ namespace VollyHead.Online
         {
             openMatches.Remove(matchId.ToGuid());
             matchConnections.Remove(matchId.ToGuid());
+            SceneManager.UnloadSceneAsync(matchStartScenes[matchId.ToGuid()]);
+        }
+
+        public void RemovePlayerFromMatch(NetworkConnection conn, Guid matchGuid)
+        {
+            Debug.Log($"Removed from match: {playerInfos[conn].playerName}");
+            matchConnections[matchGuid].Remove(conn);
         }
         #endregion
 

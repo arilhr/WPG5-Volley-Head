@@ -13,6 +13,8 @@ namespace VollyHead.Online
 
         [Header("MAIN MENU UI")]
         public GameObject mainMenu;
+        public GameObject mainPanel;
+        public GameObject playPanel;
         [Space(5f)]
 
         [Header("JOIN ROOM UI")]
@@ -95,7 +97,7 @@ namespace VollyHead.Online
                 emptySlot.isEmpty = false;
             }
 
-            if (matchInfo.playersCount >= MatchMaker.instance.minPlayerToStart && MatchMaker.instance.playerClientInfo.isRoomMaster)
+            if (matchInfo.playerTeam1.Count >= MatchMaker.instance.minPlayerToStart && matchInfo.playerTeam2.Count >= MatchMaker.instance.minPlayerToStart && MatchMaker.instance.playerClientInfo.isRoomMaster)
             {
                 roomController.startBtn.SetActive(true);
             }
@@ -108,6 +110,8 @@ namespace VollyHead.Online
         public void ResetLobby()
         {
             lobbyObject.SetActive(true);
+            mainPanel.SetActive(true);
+            playPanel.SetActive(false);
             mainMenu.SetActive(true);
             joinRoomPanel.SetActive(false);
             roomPanel.SetActive(false);

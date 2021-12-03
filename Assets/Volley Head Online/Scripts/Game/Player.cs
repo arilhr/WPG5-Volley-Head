@@ -15,11 +15,13 @@ namespace VollyHead.Online
         }
 
         private GameManager gameManager;
+        public SpriteRenderer graphic;
         private int team;
 
         [Header("Move Attribute")]
         public float speed;
         public float jumpForce;
+        public Transform groundChecker;
         public LayerMask groundLayer;
         private Rigidbody2D playerRb;
         private int inputHorizontal;
@@ -57,12 +59,21 @@ namespace VollyHead.Online
         public void InitializeDataServerPlayer(GameManager gameManager, int team)
         {
             this.team = team;
+
+            SetGraphic(team == 1);
+
             this.gameManager = gameManager;
             if (isServer)
             {
                 physicsScene = gameObject.scene.GetPhysicsScene2D();
             }
             CmdInitializeDataClientPlayer(this.gameManager, this.team);
+        }
+
+        [ClientRpc]
+        private void SetGraphic(bool isFlip)
+        {
+            graphic.flipX = isFlip;
         }
 
         [TargetRpc]
@@ -111,6 +122,8 @@ namespace VollyHead.Online
         [Server]
         private void Move(int direction)
         {
+            if (state != PlayerState.MOVE) return;
+
             playerRb.velocity = new Vector2(speed * direction * Time.fixedDeltaTime * 10, playerRb.velocity.y);
         }
 
@@ -183,11 +196,7 @@ namespace VollyHead.Online
 
         private bool GroundCheck()
         {
-            float offsetHeight = 0f;
-            Collider2D collider = GetComponentInChildren<Collider2D>();
-            RaycastHit2D raycastHit = physicsScene.BoxCast(collider.bounds.center, collider.bounds.size, 0f, Vector2.down, offsetHeight, groundLayer);
-
-            return raycastHit.collider != null;
+            return (physicsScene.OverlapPoint(groundChecker.position, groundLayer));
         }
 
         public int GetTeam() { return team; }

@@ -20,6 +20,7 @@ namespace VollyHead.Online
 
         [Header("Game")]
         public UIManager gameUI;
+        public int targetScore = 5;
         public float timeToNewRound;
 
         [Header("Team Info")]
@@ -75,7 +76,6 @@ namespace VollyHead.Online
         private void SetStartingPosition()
         {
             // set player starting pos
-            Debug.Log($"Serve area: {teams[currentPlayerToServe.GetTeam()].serveArea.position.x}");
             currentPlayerToServe.transform.position = teams[currentPlayerToServe.GetTeam()].serveArea.position;
             ball.transform.position = teams[currentPlayerToServe.GetTeam()].ballPosOnServe.position;
             currentPlayerToServe.StartServe();
@@ -135,7 +135,7 @@ namespace VollyHead.Online
         [Server]
         private bool CheckWin(int scoredTeam)
         {
-            if (teams[scoredTeam].score == 5)
+            if (teams[scoredTeam].score == targetScore)
             {
                 GameEnd(scoredTeam);
                 return true;
@@ -176,11 +176,12 @@ namespace VollyHead.Online
 
         public void OnPlayerDisconnected(NetworkConnection conn)
         {
-            StartCoroutine(ServerEndMatch(conn));
+            string matchId = MatchMaker.instance.playerInfos[conn].matchId;
+            StartCoroutine(ServerEndMatch(conn, matchId));
         }
 
         // match disconnected
-        public IEnumerator ServerEndMatch(NetworkConnection conn)
+        public IEnumerator ServerEndMatch(NetworkConnection conn, string matchId)
         {
             MatchMaker.instance.OnPlayerDisconnected -= OnPlayerDisconnected;
 
@@ -189,26 +190,55 @@ namespace VollyHead.Online
             // Skip a frame so the message goes out ahead of object destruction
             yield return null;
 
-            string matchId = MatchMaker.instance.playerInfos[conn].matchId;
-
             foreach (NetworkConnection playerConn in MatchMaker.instance.matchConnections[matchId.ToGuid()])
             {
                 if (playerConn != conn)
                 {
-                    RpcExitGame(playerConn);
                     NetworkServer.RemovePlayerForConnection(playerConn, true);
-                    playerConn.Send(new SceneMessage { sceneName = MatchMaker.instance.gameScene, sceneOperation = SceneOperation.UnloadAdditive });
+                }
+            }
+
+            StartCoroutine(GameManagerTimeoutEndMatch(matchId));
+        }
+
+        private IEnumerator GameManagerTimeoutEndMatch(string matchId)
+        {
+            yield return new WaitForSeconds(5f);
+
+            if (MatchMaker.instance.matchConnections.ContainsKey(matchId.ToGuid()))
+            {
+                if (MatchMaker.instance.matchConnections[matchId.ToGuid()].Count > 0)
+                {
+                    foreach (NetworkConnection playerConn in MatchMaker.instance.matchConnections[matchId.ToGuid()])
+                    {
+                        RpcExitGame(playerConn);
+                    }
                 }
             }
 
             NetworkServer.Destroy(gameObject);
+            MatchMaker.instance.OnServerMatchEnded(matchId);
         }
 
         [TargetRpc]
         private void RpcExitGame(NetworkConnection conn)
         {
-            Debug.Log($"Match End.");
             LobbyUIManager.instance.ResetLobby();
+        }
+
+        [Client]
+        public void BackToMenu()
+        {
+            LobbyUIManager.instance.ResetLobby();
+            CmdBackMenu();
+
+            Destroy(gameObject);
+        }
+
+        [Command]
+        private void CmdBackMenu(NetworkConnectionToClient conn = null)
+        {
+            MatchMaker.instance.RemovePlayerFromMatch(conn, GetComponent<NetworkMatch>().matchId);
         }
     }
 }

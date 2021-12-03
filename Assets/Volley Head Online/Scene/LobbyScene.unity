@@ -7353,7 +7353,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0dc70436be80164c801a4ef2f75c298, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minPlayerToStart: 2
+  minPlayerToStart: 1
   maxPlayerOnMatch: 4
   currentClientMatchId: 
   playerClientInfo:
@@ -7970,6 +7970,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lobbyObject: {fileID: 1708223790}
   mainMenu: {fileID: 1556810736}
+  mainPanel: {fileID: 1370063432}
+  playPanel: {fileID: 2055477833}
   joinRoomPanel: {fileID: 1969853548}
   roomCodeInput: {fileID: 1424040587}
   roomPanel: {fileID: 392383477}
@@ -9940,8 +9942,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 7.1000085}
-  m_SizeDelta: {x: 0, y: -14.199983}
+  m_AnchoredPosition: {x: 0, y: 5}
+  m_SizeDelta: {x: 0, y: -10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2095311537
 MonoBehaviour:
@@ -9965,8 +9967,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: CONFIRM
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: fb59e53b2f8c12a44aa4d88f68124fb7, type: 2}
+  m_sharedMaterial: {fileID: -4544143580945065396, guid: fb59e53b2f8c12a44aa4d88f68124fb7, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

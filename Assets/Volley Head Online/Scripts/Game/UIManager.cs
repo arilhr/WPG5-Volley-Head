@@ -23,7 +23,8 @@ namespace VollyHead.Online
         public CustomButton jumpButton;
 
         [Header("Game End UI")]
-        public GameObject gameEndPanel;
+        public GameObject winPanel;
+        public GameObject losePanel;
         public TMP_Text informationText;
         public GameObject startAgainBtn;
 
@@ -57,15 +58,13 @@ namespace VollyHead.Online
 
         public void SetGameEndUI(bool isWin)
         {
-            gameEndPanel.SetActive(true);
-
             if (isWin)
             {
-                informationText.text = $"YOU WIN!!";
+                winPanel.SetActive(true);
             }
             else
             {
-                informationText.text = $"YOU LOSE!!";
+                losePanel.SetActive(true);
             }
         }
     }

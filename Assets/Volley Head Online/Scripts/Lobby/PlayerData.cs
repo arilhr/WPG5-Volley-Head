@@ -51,6 +51,8 @@ namespace VollyHead.Online
         #region UI Function
         public void ConfirmSetName()
         {
+            if (inputName.text == string.Empty) return;
+
             SetName(inputName.text);
         }
 
