@@ -168,25 +168,21 @@ namespace VollyHead.Online
 
             Debug.Log("On Server Disconnect!..");
 
-            // Invoke OnPlayerDisconnected on all instances of MatchController
             OnPlayerDisconnected?.Invoke(conn);
 
             // if player disconnected is room master, delete match
             // else, leave match
             PlayerInfo playerInfo = playerInfos[conn];
 
-            if (playerInfo.matchId != string.Empty)
+            if (playerInfo.matchId != string.Empty && openMatches.ContainsKey(playerInfo.matchId.ToGuid()))
             {
                 if (!openMatches[playerInfo.matchId.ToGuid()].isStarted)
                 {
                     OnServerLeaveMatch(conn);
-                    playerInfos.Remove(conn);
                 }
             }
-            else
-            {
-                playerInfos.Remove(conn);
-            }
+
+            playerInfos.Remove(conn);
         }
 
         internal void OnStopServer()
@@ -444,7 +440,7 @@ namespace VollyHead.Online
 
             Guid matchGuid = playerInfos[conn].matchId.ToGuid();
 
-            if (!openMatches.ContainsKey(matchGuid)) return;
+            if (openMatches[matchGuid].isStarted) return;
 
             MatchInfo matchInfo = openMatches[matchGuid];
             PlayerInfo playerInfo = playerInfos[conn];
