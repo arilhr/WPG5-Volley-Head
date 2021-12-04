@@ -179,6 +179,7 @@ GameObject:
   - component: {fileID: 5542307638423727680}
   - component: {fileID: 830953281624207173}
   - component: {fileID: 2803073021181515855}
+  - component: {fileID: 101213968365200438}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -245,6 +246,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
+  anim: {fileID: 101213968365200438}
   servePowerMultiplier: 20
 --- !u!114 &-7803172478363957339
 MonoBehaviour:
@@ -389,3 +391,19 @@ CircleCollider2D:
   m_Offset: {x: -0.06, y: 1.05}
   serializedVersion: 2
   m_Radius: 0.61105525
+--- !u!114 &101213968365200438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3604311364537775856}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f6f3bf89aa97405989c802ba270f815, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0
+  clientAuthority: 0
+  animator: {fileID: 4916157245921192153}

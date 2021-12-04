@@ -24,6 +24,7 @@ namespace VollyHead.Online
         public Transform groundChecker;
         public LayerMask groundLayer;
         private Rigidbody2D playerRb;
+        [SerializeField] private NetworkAnimator anim;
         private int inputHorizontal;
 
         [Header("Serve Attribute")]
@@ -44,6 +45,11 @@ namespace VollyHead.Online
             {
                 InputPlayer();
                 CmdInputHorizontal(inputHorizontal);
+            }
+
+            if (isServer)
+            {
+                UpdateAnimation();
             }
         }
 
@@ -158,6 +164,7 @@ namespace VollyHead.Online
             if (GroundCheck() && state == PlayerState.MOVE)
             {
                 playerRb.AddForce(new Vector2(0, jumpForce * 10));
+                anim.animator.SetTrigger("Jump");
             }
         }
 
@@ -207,6 +214,15 @@ namespace VollyHead.Online
         }
         #endregion
 
+        #region Animation
+
+        private void UpdateAnimation()
+        {
+            anim.animator.SetBool("IsWalk", inputHorizontal != 0);
+            anim.animator.SetBool("IsGround", GroundCheck());
+        }
+
+        #endregion
 
         private bool GroundCheck()
         {
