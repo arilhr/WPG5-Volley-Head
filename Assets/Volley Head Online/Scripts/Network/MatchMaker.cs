@@ -465,21 +465,30 @@ namespace VollyHead.Online
                     // update player info room master
                     NetworkConnection newRoomMasterConn = matchConnections[matchGuid].ElementAt(0);
                     PlayerInfo newRoomMasterInfo = playerInfos[newRoomMasterConn];
-                    newRoomMasterInfo.isRoomMaster = true;
 
-                    // update match info
+                    // removing past player info data in match
                     if (newRoomMasterInfo.team == 1)
                     {
-                        matchInfo.playerTeam1.Remove(playerInfos[newRoomMasterConn]);
-                        matchInfo.playerTeam1.Add(newRoomMasterInfo);
+                        matchInfo.playerTeam1.Remove(newRoomMasterInfo);
                     }
                     else
                     {
-                        matchInfo.playerTeam2.Remove(playerInfos[newRoomMasterConn]);
-                        matchInfo.playerTeam2.Add(newRoomMasterInfo);
+                        matchInfo.playerTeam2.Remove(newRoomMasterInfo);
                     }
 
+                    // update player info
+                    newRoomMasterInfo.isRoomMaster = true;
                     playerInfos[newRoomMasterConn] = newRoomMasterInfo;
+
+                    if (newRoomMasterInfo.team == 1)
+                    {
+                        matchInfo.playerTeam1.Add(playerInfos[newRoomMasterConn]);
+                    }
+                    else
+                    {
+                        matchInfo.playerTeam2.Add(playerInfos[newRoomMasterConn]);
+                    }
+                    
 
                     playerMatches.Remove(conn);
                     playerMatches.Add(newRoomMasterConn, matchGuid);
@@ -490,21 +499,20 @@ namespace VollyHead.Online
                     OnServerDeleteMatch(conn);
                 }
             } 
+
+            // remove player info from list team match info
+            if (playerInfo.team == 1)
+            {
+                matchInfo.playerTeam1.Remove(playerInfos[conn]);
+            }
             else
             {
-                // remove player info from list team match info
-                if (playerInfo.team == 1)
-                {
-                    matchInfo.playerTeam1.Remove(playerInfos[conn]);
-                }
-                else
-                {
-                    matchInfo.playerTeam2.Remove(playerInfos[conn]);
-                }
+                matchInfo.playerTeam2.Remove(playerInfos[conn]);
             }
-            
+
             // reset player info
             playerInfo.ready = false;
+            playerInfo.isRoomMaster = false;
             playerInfo.matchId = string.Empty;
             playerInfo.team = 0;
 
