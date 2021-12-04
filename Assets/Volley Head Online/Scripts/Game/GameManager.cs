@@ -79,6 +79,7 @@ namespace VollyHead.Online
             currentPlayerToServe.transform.position = teams[currentPlayerToServe.GetTeam()].serveArea.position;
             ball.transform.position = teams[currentPlayerToServe.GetTeam()].ballPosOnServe.position;
             currentPlayerToServe.StartServe();
+            currentPlayerToServe.StartServeRpc();
 
             // set another player position
             foreach (Team team in teams)

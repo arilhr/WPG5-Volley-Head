@@ -83,18 +83,15 @@ namespace VollyHead.Online
             this.gameManager = gameManager;
             if (isLocalPlayer)
             {
-                gameManager.gameUI.serveButton.onReleased.AddListener(() => CmdServe());
+                gameManager.gameUI.serveButton.onReleased.AddListener(() => CmdServe(servePower));
                 gameManager.gameUI.jumpButton.onPressed.AddListener(() => CmdJump());
             }
         }
 
-        [Client]
         private void InputPlayer()
         {
             if (state == PlayerState.MOVE)
             {
-                inputHorizontal = (int) Input.GetAxisRaw("Horizontal");
-
                 if (gameManager.gameUI.leftButton.IsPressed)
                 {
                     inputHorizontal = -1;
@@ -102,6 +99,10 @@ namespace VollyHead.Online
                 else if (gameManager.gameUI.rightButton.IsPressed)
                 {
                     inputHorizontal = 1;
+                }
+                else
+                {
+                    inputHorizontal = 0;
                 }
             }
             else if (state == PlayerState.SERVE)
@@ -118,8 +119,23 @@ namespace VollyHead.Online
         {
             inputHorizontal = currentInput;
         }
-        
-        [Server]
+
+        #region Player Move
+
+        public void StartMove()
+        {
+            state = PlayerState.MOVE;
+            inputHorizontal = 0;
+            servePower = 0;
+        }
+
+        [TargetRpc]
+        public void StartMoveRpc()
+        {
+            StartMove();
+            gameManager.gameUI.SetMoveUI();
+        }
+
         private void Move(int direction)
         {
             if (state != PlayerState.MOVE) return;
@@ -127,27 +143,41 @@ namespace VollyHead.Online
             playerRb.velocity = new Vector2(speed * direction * Time.fixedDeltaTime * 10, playerRb.velocity.y);
         }
 
+        #endregion
+
+        #region Jump
+
         [Command]
         private void CmdJump()
         {
-            if (GroundCheck())
+            Jump();
+        }
+
+        private void Jump()
+        {
+            if (GroundCheck() && state == PlayerState.MOVE)
             {
                 playerRb.AddForce(new Vector2(0, jumpForce * 10));
             }
         }
 
-        [TargetRpc]
+        #endregion
+
+        #region Serve
         public void StartServe()
         {
-            // reset value
-            servePower = 0;
             state = PlayerState.SERVE;
-            gameManager.gameUI.SetServeUI();
-            Debug.Log($"Player Serve...");
-            // servePowerBar.value = 0;
+            inputHorizontal = 0;
+            servePower = 0;
         }
 
-        [Client]
+        [TargetRpc]
+        public void StartServeRpc()
+        {
+            StartServe();
+            gameManager.gameUI.SetServeUI();
+        }
+
         private void IncreasingServePower()
         {
             if (servePower >= 1)
@@ -160,39 +190,23 @@ namespace VollyHead.Online
             }
 
             gameManager.gameUI.SetServePowerUI(servePower);
-            CmdIncreaseServePower(servePower);
         }
 
         [Command]
-        private void CmdIncreaseServePower(float power)
+        private void CmdServe(float servePower)
         {
-            servePower = power;
+            Serve(servePower);
+            StartMove();
+            StartMoveRpc();
         }
 
-        [Command]
-        private void CmdServe()
+        private void Serve(float power)
         {
-            float finalPower = team == 0 ? servePower : -servePower;
+            float finalPower = team == 0 ? power : -power;
             gameManager.ball.GetComponent<Ball>().ServeBall(finalPower * servePowerMultiplier);
-            EndServeRpc();
         }
+        #endregion
 
-        [TargetRpc]
-        private void EndServeRpc()
-        {
-            state = PlayerState.MOVE;
-            gameManager.gameUI.SetMoveUI();
-        }
-
-        [TargetRpc]
-        public void StartMove()
-        {
-            // reset value
-            servePower = 0;
-            // servePowerBar.value = 0;
-
-            gameManager.gameUI.SetMoveUI();
-        }
 
         private bool GroundCheck()
         {
