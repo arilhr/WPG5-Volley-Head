@@ -760,6 +760,7 @@ namespace VollyHead.Online
         void OnClientMatchStarted()
         {
             LobbyUIManager.instance.gameObject.SetActive(false);
+            LobbyUIManager.instance.bgMusic.Stop();
         }
 
         #endregion

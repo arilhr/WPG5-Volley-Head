@@ -4248,7 +4248,6 @@ GameObject:
   m_Component:
   - component: {fileID: 888473858}
   - component: {fileID: 888473859}
-  - component: {fileID: 888473860}
   m_Layer: 0
   m_Name: BG Music
   m_TagString: Untagged
@@ -4366,18 +4365,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &888473860
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 888473857}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3d04b49b0cefedb42a054b4809b14e5c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &910739553
 GameObject:
   m_ObjectHideFlags: 0
@@ -7976,6 +7963,8 @@ MonoBehaviour:
   roomCodeInput: {fileID: 1424040587}
   roomPanel: {fileID: 392383477}
   roomController: {fileID: 392383481}
+  lobbyAudioListener: {fileID: 1876660596}
+  bgMusic: {fileID: 888473859}
 --- !u!1 &1713983728
 GameObject:
   m_ObjectHideFlags: 0

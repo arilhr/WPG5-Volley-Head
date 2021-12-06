@@ -25,6 +25,10 @@ namespace VollyHead.Online
         public GameObject roomPanel;
         public RoomGUI roomController;
 
+        [Header("BG MUSIC")]
+        public AudioListener lobbyAudioListener;
+        public AudioSource bgMusic;
+
         private void Awake()
         {
             if (instance == null)
@@ -116,6 +120,21 @@ namespace VollyHead.Online
             joinRoomPanel.SetActive(false);
             roomPanel.SetActive(false);
             roomController.ResetRoom();
+
+            if (!bgMusic.isPlaying)
+            {
+                bgMusic.Play();
+            }
+        }
+
+        private void OnDisable()
+        {
+            lobbyAudioListener.enabled = false;
+        }
+
+        private void OnEnable()
+        {
+            lobbyAudioListener.enabled = true;
         }
     }
 }

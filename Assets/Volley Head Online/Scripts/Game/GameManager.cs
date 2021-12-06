@@ -31,6 +31,10 @@ namespace VollyHead.Online
         public Ball ball;
         public Collider2D midBoundary;
 
+        [Header("Audio")]
+        public AudioSource scoredAudio;
+        public AudioSource whistleEndAudio;
+
         [Server]
         public void InitializeGameData(List<Player> playerTeam1, List<Player> playerTeam2, Ball _ball)
         {
@@ -131,6 +135,8 @@ namespace VollyHead.Online
 
             // Score UI updated
             gameUI.SetScore(team1Score, team2Score);
+
+            scoredAudio.Play();
         }
 
         [Server]
@@ -159,6 +165,8 @@ namespace VollyHead.Online
             {
                 RpcGameLose(player.connectionToClient);
             }
+
+            PlayEndAudioRpc();
         }
 
         [TargetRpc]
@@ -174,6 +182,16 @@ namespace VollyHead.Online
             gameUI.SetGameEndUI(true);
             Debug.Log($"Win...");
         }
+
+        #region Audio
+
+        [ClientRpc]
+        private void PlayEndAudioRpc()
+        {
+            whistleEndAudio.Play();
+        }
+
+        #endregion
 
         public void OnPlayerDisconnected(NetworkConnection conn)
         {

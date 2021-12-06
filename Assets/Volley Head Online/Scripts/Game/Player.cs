@@ -31,12 +31,25 @@ namespace VollyHead.Online
         public float servePowerMultiplier = 100f;
         private float servePower;
 
+        [Header("Audio")]
+        [SerializeField] private AudioSource walkSound;
+        private bool walkSoundPlayed = false;
+        [SerializeField] private AudioSource jumpSound;
+        private AudioListener audioListener;
+
         private PlayerState state = PlayerState.MOVE;
         private PhysicsScene2D physicsScene;
 
         private void Start()
         {
             playerRb = GetComponent<Rigidbody2D>();
+
+            audioListener = GetComponent<AudioListener>();
+            audioListener.enabled = false;
+            if (isLocalPlayer)
+            {
+                audioListener.enabled = true;
+            }
         }
 
         private void Update()
@@ -50,6 +63,7 @@ namespace VollyHead.Online
             if (isServer)
             {
                 UpdateAnimation();
+                UpdateWalkAudio();
             }
         }
 
@@ -165,6 +179,7 @@ namespace VollyHead.Online
             {
                 playerRb.AddForce(new Vector2(0, jumpForce * 10));
                 anim.animator.SetTrigger("Jump");
+                TriggerJumpSoundRpc();
             }
         }
 
@@ -220,6 +235,40 @@ namespace VollyHead.Online
         {
             anim.animator.SetBool("IsWalk", inputHorizontal != 0);
             anim.animator.SetBool("IsGround", GroundCheck());
+        }
+
+        #endregion
+
+        #region Audio
+
+        private void UpdateWalkAudio()
+        {
+            if (playerRb.velocity.x != 0 && !walkSoundPlayed)
+            {
+                UpdateWalkAudioRpc(true);
+                walkSoundPlayed = true;
+            }
+            else if (playerRb.velocity.x == 0 && walkSoundPlayed)
+            {
+                UpdateWalkAudioRpc(false);
+                walkSoundPlayed = false;
+            }
+        }
+
+        [ClientRpc]
+        private void UpdateWalkAudioRpc(bool play)
+        {
+            Debug.Log($"Walk Audio Play: {play}");
+            if (play) walkSound.Play();
+            else walkSound.Stop();
+        }
+
+        [ClientRpc]
+        private void TriggerJumpSoundRpc()
+        {
+            if (jumpSound == null) return;
+
+            jumpSound.Play();
         }
 
         #endregion
