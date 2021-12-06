@@ -15,6 +15,9 @@ namespace VollyHead.Online
         private bool isPlayed = true;
         public Rigidbody2D ballRb;
 
+        [Header("AUDIO")]
+        public AudioSource bumpSound;
+
         private float defaultGravityScale;
 
         private int lastTeamTouchBall;
@@ -73,6 +76,7 @@ namespace VollyHead.Online
         {
             ballRb.gravityScale = 0.8f;
             ballRb.AddForce(new Vector2(10f * power,  6f * Mathf.Abs(power)));
+            CmdBumpSound();
         }
 
         [Server]
@@ -101,7 +105,13 @@ namespace VollyHead.Online
             }
         }
 
-        #region Touch Ball In Rule
+        #region Audio
+
+        [ClientRpc]
+        private void CmdBumpSound()
+        {
+            bumpSound.Play();
+        }
 
         #endregion
 
@@ -165,8 +175,9 @@ namespace VollyHead.Online
                     }
                 }
             }
-        }
 
+            CmdBumpSound();
+        }
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
@@ -177,7 +188,6 @@ namespace VollyHead.Online
                 ResetBallData();
             }
         }
-
 
         private void OnTriggerStay2D(Collider2D collision)
         {

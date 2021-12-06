@@ -242,8 +242,8 @@ namespace VollyHead.Online
                 {
                     foreach (NetworkConnection playerConn in MatchMaker.instance.matchConnections[matchGuid])
                     {
-                        NetworkServer.RemovePlayerForConnection(playerConn, true);
                         RpcExitGame(playerConn);
+                        NetworkServer.RemovePlayerForConnection(playerConn, true);
                     }
                 }
             }
