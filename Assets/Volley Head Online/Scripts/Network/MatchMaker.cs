@@ -614,7 +614,7 @@ namespace VollyHead.Online
             SceneManager.MoveGameObjectToScene(ball, newMatchScene);
             ballManager.InitializeBallData(gm);
 
-            gm.InitializeGameData(team1, team2, ballManager);
+            gm.InitializeGameData(matchGuid, team1, team2, ballManager);
             SceneManager.MoveGameObjectToScene(gameManagerObj, newMatchScene);
 
             gm.StartGame();
@@ -628,11 +628,14 @@ namespace VollyHead.Online
             OnPlayerDisconnected += gm.OnPlayerDisconnected;
         }
 
-        public void OnServerMatchEnded(string matchId)
+        public void OnServerMatchEnded(Guid matchId)
         {
-            openMatches.Remove(matchId.ToGuid());
-            matchConnections.Remove(matchId.ToGuid());
-            SceneManager.UnloadSceneAsync(matchStartScenes[matchId.ToGuid()]);
+            openMatches.Remove(matchId);
+            matchConnections.Remove(matchId);
+
+            SceneManager.UnloadSceneAsync(matchStartScenes[matchId]);
+            matchStartScenes.Remove(matchId);
+            
         }
 
         public void RemovePlayerFromMatch(NetworkConnection conn, Guid matchGuid)
@@ -640,6 +643,7 @@ namespace VollyHead.Online
             Debug.Log($"Removed from match: {playerInfos[conn].playerName}");
             matchConnections[matchGuid].Remove(conn);
         }
+
         #endregion
 
         #region Client Match Message Handler

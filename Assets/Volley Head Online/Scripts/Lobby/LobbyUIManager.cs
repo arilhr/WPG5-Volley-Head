@@ -129,11 +129,15 @@ namespace VollyHead.Online
 
         private void OnDisable()
         {
+            if (lobbyAudioListener == null) return;
+
             lobbyAudioListener.enabled = false;
         }
 
         private void OnEnable()
         {
+            if (lobbyAudioListener == null) return;
+
             lobbyAudioListener.enabled = true;
         }
     }
