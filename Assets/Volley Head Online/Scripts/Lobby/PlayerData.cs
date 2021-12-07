@@ -26,6 +26,8 @@ namespace VollyHead.Online
             {
                 Destroy(this.gameObject);
             }
+
+            playerName = PlayerPrefs.GetString("Name");
         }
 
         private void Start()
@@ -60,6 +62,7 @@ namespace VollyHead.Online
         {
             inputName.text = string.Empty;
             setNameObject.SetActive(false);
+            PlayerPrefs.SetString("Name", playerName);
         }
         #endregion
     }

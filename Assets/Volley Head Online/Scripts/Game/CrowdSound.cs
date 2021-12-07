@@ -2,29 +2,32 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CrowdSound : MonoBehaviour
+namespace VollyHead.Online
 {
-    public List<AudioClip> crowdSounds;
-    public int minDelayTime = 3;
-    public int maxDelayTime = 5;
-
-    private AudioSource audioSource;
-
-    private void Start()
+    public class CrowdSound : MonoBehaviour
     {
-        audioSource = GetComponent<AudioSource>();
+        public List<AudioClip> crowdSounds;
+        public int minDelayTime = 3;
+        public int maxDelayTime = 5;
 
-        StartCoroutine(PlayCrowdAudio());
-    }
+        private AudioSource audioSource;
 
-    private IEnumerator PlayCrowdAudio()
-    {
-        int indexSound = Random.Range(0, crowdSounds.Count);
+        private void Start()
+        {
+            audioSource = GetComponent<AudioSource>();
 
-        audioSource.PlayOneShot(crowdSounds[indexSound]);
+            StartCoroutine(PlayCrowdAudio());
+        }
 
-        yield return new WaitUntil(() => !audioSource.isPlaying);
+        private IEnumerator PlayCrowdAudio()
+        {
+            int indexSound = Random.Range(0, crowdSounds.Count);
 
-        PlayCrowdAudio();
+            audioSource.PlayOneShot(crowdSounds[indexSound]);
+
+            yield return new WaitUntil(() => !audioSource.isPlaying);
+
+            PlayCrowdAudio();
+        }
     }
 }

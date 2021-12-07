@@ -631,16 +631,38 @@ namespace VollyHead.Online
         public void OnServerMatchEnded(Guid matchId)
         {
             openMatches.Remove(matchId);
+
+            if (matchConnections.Count > 0)
+            {
+                foreach (NetworkConnection conn in matchConnections[matchId])
+                {
+                    ResetPlayerInfo(conn);
+                }
+            }
+
+            // remove all match connection
             matchConnections.Remove(matchId);
 
             SceneManager.UnloadSceneAsync(matchStartScenes[matchId]);
             matchStartScenes.Remove(matchId);
-            
+
+            Debug.Log($"Match End: {matchId}");
+        }
+
+        public void ResetPlayerInfo(NetworkConnection conn)
+        {
+            PlayerInfo player = playerInfos[conn];
+            player.matchId = string.Empty;
+            player.ready = false;
+            player.isRoomMaster = false;
+            playerInfos[conn] = player;
         }
 
         public void RemovePlayerFromMatch(NetworkConnection conn, Guid matchGuid)
         {
             Debug.Log($"Removed from match: {playerInfos[conn].playerName}");
+
+            ResetPlayerInfo(conn);
             matchConnections[matchGuid].Remove(conn);
         }
 

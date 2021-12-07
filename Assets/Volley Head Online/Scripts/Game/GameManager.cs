@@ -231,10 +231,7 @@ namespace VollyHead.Online
 
         private IEnumerator GameManagerTimeoutEndMatch(Guid matchGuid)
         {
-           
             yield return new WaitForSeconds(5f);
-
-            Debug.Log($"Timeout game end..");
 
             if (MatchMaker.instance.matchConnections.ContainsKey(matchGuid))
             {
