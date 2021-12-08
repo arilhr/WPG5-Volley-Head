@@ -179,6 +179,10 @@ namespace VollyHead.Online
                 {
                     OnServerLeaveMatch(conn);
                 }
+                else
+                {
+                    RemovePlayerFromMatch(conn, playerInfo.matchId.ToGuid());
+                }
             }
 
             playerInfos.Remove(conn);
