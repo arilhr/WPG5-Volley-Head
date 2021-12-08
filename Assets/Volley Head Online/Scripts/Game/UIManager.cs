@@ -28,6 +28,8 @@ namespace VollyHead.Online
         public TMP_Text informationText;
         public GameObject startAgainBtn;
 
+        public GameObject disconnectedPanel;
+
 
         public void SetServeUI()
         {
@@ -66,6 +68,11 @@ namespace VollyHead.Online
             {
                 losePanel.SetActive(true);
             }
+        }
+
+        public void ShowPlayerDisconnectedUI()
+        {
+            disconnectedPanel.SetActive(true);
         }
     }
 }

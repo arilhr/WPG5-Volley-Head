@@ -24,6 +24,7 @@ namespace VollyHead.Online
         public UIManager gameUI;
         public int targetScore = 5;
         public float timeToNewRound;
+        private bool isPlaying;
 
         [Header("Team Info")]
         public Team[] teams;
@@ -61,6 +62,7 @@ namespace VollyHead.Online
         [Server]
         public void StartGame()
         {
+            isPlaying = true;
             RandomFirstTeamToServe();
             SetStartingPosition();
         }
@@ -112,9 +114,12 @@ namespace VollyHead.Online
         {
             yield return new WaitForSeconds(timeToNewRound);
 
-            RandomPlayerToServe(serviceTeam);
-            SetStartingPosition();
-            ball.GetComponent<Ball>().StartNewRound();
+            if (isPlaying)
+            {
+                RandomPlayerToServe(serviceTeam);
+                SetStartingPosition();
+                ball.GetComponent<Ball>().StartNewRound();
+            }
         }
 
         [Server]
@@ -173,7 +178,7 @@ namespace VollyHead.Online
             PlayEndAudioRpc();
 
             MatchMaker.instance.OnPlayerDisconnected -= OnPlayerDisconnected;
-            StartCoroutine(GameManagerTimeoutEndMatch(matchGuid));
+            StartCoroutine(GameManagerTimeoutEndMatch(60f, matchGuid));
         }
 
         [TargetRpc]
@@ -205,6 +210,7 @@ namespace VollyHead.Online
         public void OnPlayerDisconnected(NetworkConnection conn)
         {
             string matchId = MatchMaker.instance.playerInfos[conn].matchId;
+            isPlaying = false;
             StartCoroutine(ServerPlayerDisconnected(conn, matchId));
         }
 
@@ -213,25 +219,28 @@ namespace VollyHead.Online
         {
             MatchMaker.instance.OnPlayerDisconnected -= OnPlayerDisconnected;
 
+            MatchMaker.instance.RemovePlayerFromMatch(conn, matchId.ToGuid());
+
+            PlayerDisconnectUIRpc();
+
             NetworkServer.Destroy(ball.gameObject);
 
             // Skip a frame so the message goes out ahead of object destruction
             yield return null;
 
-            foreach (NetworkConnection playerConn in MatchMaker.instance.matchConnections[matchId.ToGuid()])
-            {
-                if (playerConn != conn)
-                {
-                    NetworkServer.RemovePlayerForConnection(playerConn, true);
-                }
-            }
-
-            StartCoroutine(GameManagerTimeoutEndMatch(matchId.ToGuid()));
+            StartCoroutine(GameManagerTimeoutEndMatch(10f, matchId.ToGuid()));
         }
 
-        private IEnumerator GameManagerTimeoutEndMatch(Guid matchGuid)
+        [ClientRpc]
+        private void PlayerDisconnectUIRpc()
         {
-            yield return new WaitForSeconds(5f);
+            gameUI.ShowPlayerDisconnectedUI();
+        }
+
+        private IEnumerator GameManagerTimeoutEndMatch(float delayTime, Guid matchGuid)
+        {
+            yield return new WaitForSeconds(delayTime);
+
 
             if (MatchMaker.instance.matchConnections.ContainsKey(matchGuid))
             {
@@ -270,6 +279,7 @@ namespace VollyHead.Online
         [Command(requiresAuthority = false)]
         private void CmdBackMenu(NetworkConnectionToClient conn = null)
         {
+            MatchMaker.instance.ResetPlayerInfo(conn);
             MatchMaker.instance.RemovePlayerFromMatch(conn, matchGuid);
         }
     }

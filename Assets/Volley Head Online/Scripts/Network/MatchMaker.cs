@@ -108,7 +108,6 @@ namespace VollyHead.Online
             if (!NetworkClient.active || currentClientMatchId == string.Empty) return;
 
             NetworkClient.connection.Send(new ServerMatchMessage { serverMatchOperation = ServerMatchOperation.Leave });
-            Debug.Log($"Leave match...");
         }
 
         public void RequestCancelMatch()
@@ -207,6 +206,7 @@ namespace VollyHead.Online
             
             NetworkClient.RegisterHandler<ClientMatchMessage>(OnClientMatchMessage);
 
+            playerClientInfo.playerName = PlayerData.instance.playerName;
             NetworkClient.connection.Send(new ServerMatchMessage { serverMatchOperation = ServerMatchOperation.Connect, playerInfo = playerClientInfo });
         }
 
@@ -662,7 +662,6 @@ namespace VollyHead.Online
         {
             Debug.Log($"Removed from match: {playerInfos[conn].playerName}");
 
-            ResetPlayerInfo(conn);
             matchConnections[matchGuid].Remove(conn);
         }
 
