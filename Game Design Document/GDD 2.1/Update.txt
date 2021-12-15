@@ -1,0 +1,4 @@
+Ada penambahan berupa 
+- Asset bola
+- Visual effect
+- Perapian teks
