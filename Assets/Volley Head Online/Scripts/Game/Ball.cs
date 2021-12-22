@@ -165,12 +165,10 @@ namespace VollyHead.Online
                 {
                     if (onAreaTeam == "Area1")
                     {
-                        Debug.Log($"Team 2 has scored..");
                         Scored(1);
                     }
                     else if (onAreaTeam == "Area2")
                     {
-                        Debug.Log($"Team 1 has scored..");
                         Scored(0);
                     }
                 }

@@ -38,6 +38,7 @@ namespace VollyHead.Online
         public AudioSource scoredAudio;
         public AudioSource whistleEndAudio;
 
+
         [Server]
         public void InitializeGameData(Guid matchGuid, List<Player> playerTeam1, List<Player> playerTeam2, Ball _ball)
         {
@@ -54,6 +55,7 @@ namespace VollyHead.Online
                 player.InitializeDataServerPlayer(this, 1);
                 teams[1].teamPlayer.Add(player);
             }
+
 
             ball = _ball;
             ball.InitializeBallData(this);
@@ -86,10 +88,10 @@ namespace VollyHead.Online
         private void SetStartingPosition()
         {
             // set player starting pos
+            currentPlayerToServe.StartServeRpc();
+            currentPlayerToServe.StartServe();
             currentPlayerToServe.transform.position = teams[currentPlayerToServe.GetTeam()].serveArea.position;
             ball.transform.position = teams[currentPlayerToServe.GetTeam()].ballPosOnServe.position;
-            currentPlayerToServe.StartServe();
-            currentPlayerToServe.StartServeRpc();
 
             // set another player position
             foreach (Team team in teams)
@@ -107,6 +109,7 @@ namespace VollyHead.Online
             }
 
             ball.GetComponent<Ball>().ServeMode();
+            ball.GetComponent<Ball>().StartNewRound();
         }
 
         [Server]
@@ -118,7 +121,6 @@ namespace VollyHead.Online
             {
                 RandomPlayerToServe(serviceTeam);
                 SetStartingPosition();
-                ball.GetComponent<Ball>().StartNewRound();
             }
         }
 
@@ -177,6 +179,7 @@ namespace VollyHead.Online
 
             PlayEndAudioRpc();
 
+            isPlaying = false;
             MatchMaker.instance.OnPlayerDisconnected -= OnPlayerDisconnected;
             StartCoroutine(GameManagerTimeoutEndMatch(60f, matchGuid));
         }
@@ -218,8 +221,6 @@ namespace VollyHead.Online
         public IEnumerator ServerPlayerDisconnected(NetworkConnection conn, string matchId)
         {
             MatchMaker.instance.OnPlayerDisconnected -= OnPlayerDisconnected;
-
-            MatchMaker.instance.RemovePlayerFromMatch(conn, matchId.ToGuid());
 
             PlayerDisconnectUIRpc();
 
@@ -273,7 +274,7 @@ namespace VollyHead.Online
             LobbyUIManager.instance.ResetLobby();
             CmdBackMenu();
 
-            Destroy(gameObject);
+            // Destroy(gameObject);
         }
 
         [Command(requiresAuthority = false)]

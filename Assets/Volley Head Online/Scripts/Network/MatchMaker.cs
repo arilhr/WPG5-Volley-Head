@@ -149,7 +149,6 @@ namespace VollyHead.Online
         {
             if (!NetworkServer.active) return;
 
-            Debug.Log("On Server Start!..");
             InitializeData();
             NetworkServer.RegisterHandler<ServerMatchMessage>(OnServerMatchMessage);
         }
@@ -158,14 +157,11 @@ namespace VollyHead.Online
         {
             if (!NetworkServer.active) return;
 
-            Debug.Log("On Server Ready!..");
         }
 
         internal void OnServerDisconnect(NetworkConnection conn)
         {
             if (!NetworkServer.active) return;
-
-            Debug.Log("On Server Disconnect!..");
 
             OnPlayerDisconnected?.Invoke(conn);
 
@@ -295,11 +291,13 @@ namespace VollyHead.Online
         {
             playerInfos.Add(conn, info);
 
-            Debug.Log($"{playerInfos[conn].playerName} is online.");
+            Debug.Log($"<color=green>{playerInfos[conn].playerName} is connected to server...</color>");
         }
 
         void OnServerChangeName(NetworkConnection conn, PlayerInfo info)
         {
+            Debug.Log($"PLAYER CHANGED NAME: {playerInfos[conn].playerName} -> {info.playerName}");
+
             PlayerInfo changedInfo = playerInfos[conn];
             changedInfo.playerName = info.playerName;
 
@@ -312,6 +310,8 @@ namespace VollyHead.Online
         void OnServerCreateMatch(NetworkConnection conn, PlayerInfo info)
         {
             if (!NetworkServer.active) return;
+
+            if (playerInfos[conn].matchId != string.Empty) return;
 
             // generate new match id
             string newMatchId;
@@ -353,6 +353,8 @@ namespace VollyHead.Online
             openMatches.Add(newMatchGuid, newMatch);
 
             conn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.Created, player = playerInfos[conn], matchInfo = openMatches[newMatchGuid] });
+
+            Debug.Log($"<color=#03fc84>Match Created: {newMatchId.ToGuid()}</color>");
         }
 
         void OnServerJoinMatch(NetworkConnection conn, string matchId, PlayerInfo info)
@@ -360,9 +362,9 @@ namespace VollyHead.Online
             // convert match id to Guid
             Guid matchGuid = matchId.ToGuid();
 
-            if (!NetworkServer.active || !matchConnections.ContainsKey(matchGuid) || !openMatches.ContainsKey(matchGuid)) return;
+            if (!NetworkServer.active || !matchConnections.ContainsKey(matchGuid) || !openMatches.ContainsKey(matchGuid) || playerInfos[conn].matchId != string.Empty) return;
 
-            if (openMatches[matchGuid].playersCount >= maxPlayerOnMatch) return;
+            if (openMatches[matchGuid].playersCount >= maxPlayerOnMatch || openMatches[matchGuid].isStarted) return;
 
             // update player and match info
             PlayerInfo playerInfo = playerInfos[conn];
@@ -530,7 +532,7 @@ namespace VollyHead.Online
 
             conn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.Departed });
 
-            Debug.Log($"{playerInfos[conn].playerName} Leave match...");
+            Debug.Log($"<color=#ff7f6e>MATCH {matchGuid}: {playerInfo.playerName} Leave match..</color>");
         }
 
         void OnServerDeleteMatch(NetworkConnection conn)
@@ -556,7 +558,7 @@ namespace VollyHead.Online
                 }
             }
 
-            Debug.Log($"Delete match...");
+            Debug.Log($"<color=#ff7f6e>Match Deleted: {matchGuid}</color>");
         }
 
         void OnServerStartMatch(NetworkConnection conn)
@@ -567,6 +569,9 @@ namespace VollyHead.Online
             if (playerMatches.TryGetValue(conn, out matchGuid))
             {
                 Debug.Log($"Start match: {matchGuid}");
+                MatchInfo match = openMatches[matchGuid];
+                match.isStarted = true;
+                openMatches[matchGuid] = match;
                 StartCoroutine(ServerLoadGameScene(conn, matchGuid));
             }
         }
@@ -593,6 +598,7 @@ namespace VollyHead.Online
                 playerConn.Send(new ClientMatchMessage { clientMatchOperation = ClientMatchOperation.Started });
                 GameObject player = Instantiate(NetworkManager.singleton.playerPrefab);
                 Player playerManager = player.GetComponent<Player>();
+                playerManager.playerName = $"{playerInfos[playerConn].playerName}";
                 if (playerInfos[playerConn].team == 1)
                 {
                     team1.Add(playerManager);
@@ -667,6 +673,7 @@ namespace VollyHead.Online
             Debug.Log($"Removed from match: {playerInfos[conn].playerName}");
 
             matchConnections[matchGuid].Remove(conn);
+            NetworkServer.RemovePlayerForConnection(conn, true);
         }
 
         #endregion
@@ -748,6 +755,8 @@ namespace VollyHead.Online
         {
             currentClientMatchId = matchInfo.matchId;
             playerClientInfo = player;
+
+            LobbyUIManager.instance.roomCodeInput.text = string.Empty;
 
             // set room and match id ui
             LobbyUIManager.instance.ShowMatchRoom(currentClientMatchId, playerClientInfo.isRoomMaster);

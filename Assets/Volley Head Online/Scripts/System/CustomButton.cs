@@ -23,5 +23,11 @@ namespace VollyHead.Online
             IsPressed = false;
             onReleased?.Invoke();
         }
+
+        private void OnDisable()
+        {
+            IsPressed = false;
+            onReleased?.Invoke();
+        }
     }
 }

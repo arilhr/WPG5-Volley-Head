@@ -44,8 +44,6 @@ namespace VollyHead.Online
         public override void OnServerAddPlayer(NetworkConnection conn)
         {
             base.OnServerAddPlayer(conn);
-
-            Debug.Log($"Player added..");
         }
 
 
@@ -89,7 +87,7 @@ namespace VollyHead.Online
                 canvas.SetActive(true);
 
             matchmaker.OnStartServer();
-            Debug.Log($"Connect on IP: {networkAddress}");
+            Debug.Log($"<color=green>Server Started.. || {networkAddress}</color>");
         }
 
         /// <summary>
@@ -97,7 +95,6 @@ namespace VollyHead.Online
         /// </summary>
         public override void OnStartClient()
         {
-            canvas.SetActive(true);
             matchmaker.OnStartClient();
         }
 
@@ -107,7 +104,8 @@ namespace VollyHead.Online
         public override void OnStopServer()
         {
             matchmaker.OnStopServer();
-            canvas.SetActive(false);
+
+            Debug.Log("<color=red>Server has been stopped..</color>");
         }
 
         /// <summary>

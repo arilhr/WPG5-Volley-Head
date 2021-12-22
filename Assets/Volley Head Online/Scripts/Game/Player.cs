@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Mirror;
+using TMPro;
 
 namespace VollyHead.Online
 {
@@ -16,7 +17,9 @@ namespace VollyHead.Online
 
         private GameManager gameManager;
         public SpriteRenderer graphic;
-        private int team;
+        public TMP_Text nameText;
+        [SyncVar] public string playerName;
+        [SyncVar] private int team;
 
         [Header("Move Attribute")]
         public float speed;
@@ -50,6 +53,8 @@ namespace VollyHead.Online
             {
                 audioListener.enabled = true;
             }
+
+            SetGraphic((team == 1));
         }
 
         private void Update()
@@ -80,8 +85,6 @@ namespace VollyHead.Online
         {
             this.team = team;
 
-            SetGraphic(team == 1);
-
             this.gameManager = gameManager;
             if (isServer)
             {
@@ -90,17 +93,17 @@ namespace VollyHead.Online
             CmdInitializeDataClientPlayer(this.gameManager, this.team);
         }
 
-        [ClientRpc]
         private void SetGraphic(bool isFlip)
         {
+            nameText.text = $"{playerName}";
             graphic.flipX = isFlip;
         }
 
         [TargetRpc]
         private void CmdInitializeDataClientPlayer(GameManager gameManager, int team)
         {
-            this.team = team;
             this.gameManager = gameManager;
+
             if (isLocalPlayer)
             {
                 gameManager.gameUI.serveButton.onReleased.AddListener(() => CmdServe(servePower));
@@ -137,6 +140,8 @@ namespace VollyHead.Online
         [Command]
         private void CmdInputHorizontal(int currentInput)
         {
+            if (state != PlayerState.MOVE) return;
+
             inputHorizontal = currentInput;
         }
 
@@ -158,7 +163,11 @@ namespace VollyHead.Online
 
         private void Move(int direction)
         {
-            if (state != PlayerState.MOVE) return;
+            if (state != PlayerState.MOVE)
+            {
+                playerRb.velocity = Vector2.zero;
+                return;
+            }
 
             playerRb.velocity = new Vector2(speed * direction * Time.fixedDeltaTime * 10, playerRb.velocity.y);
         }
@@ -258,7 +267,6 @@ namespace VollyHead.Online
         [ClientRpc]
         private void UpdateWalkAudioRpc(bool play)
         {
-            Debug.Log($"Walk Audio Play: {play}");
             if (play) walkSound.Play();
             else walkSound.Stop();
         }

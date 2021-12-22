@@ -40,7 +40,7 @@ AudioSource:
   m_GameObject: {fileID: 1396012148256704355}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 24300002, guid: 9b4b8a5bdd39a6942ae0555f61fb43c9, type: 2}
   m_audioClip: {fileID: 8300000, guid: e6a24ba8c9cdd154fa553a982865bc7c, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.7
@@ -216,7 +216,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   gameManager: {fileID: 0}
-  maxSpeed: 20
+  maxSpeed: 10
   ballRb: {fileID: 4630400874368278353}
   bumpSound: {fileID: 3546847294557520570}
 --- !u!114 &-6843208111996985302

@@ -3774,7 +3774,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   gameUI: {fileID: 6653714948951169853}
-  targetScore: 2
+  targetScore: 5
   timeToNewRound: 3
   teams:
   - score: 0
